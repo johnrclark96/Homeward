@@ -23,7 +23,7 @@ CANVAS_W = 480        // native pixels
 CANVAS_H = 270        // native pixels
 TILE_SIZE = 32        // pixels per tile
 SCALE = 4             // CSS scale factor → 1920×1080
-TICK_RATE = 1000/30   // 30 Hz logic update
+TICK_RATE = 1000/60   // 60 Hz logic update
 TILES_X = 15          // visible tiles horizontal
 TILES_Y ≈ 8.4         // visible tiles vertical
 ```

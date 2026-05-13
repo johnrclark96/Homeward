@@ -1,8 +1,9 @@
 // Camera with smooth follow, clamping, and shake. Architecture doc §7.
 //
 // Like entities, the camera tracks its previous position so apply() can
-// interpolate at 60Hz over the 30Hz logic ticks. Without this, the world
-// would shift in 30Hz steps even though entities move at 60Hz.
+// interpolate render frames between logic ticks. With logic at 60Hz on a 60Hz
+// display, alpha is effectively 0 and this becomes a no-op — but it remains
+// correct on 120/144Hz displays where multiple render frames hit per tick.
 
 import { CANVAS_W, CANVAS_H } from '../constants.js';
 
@@ -39,7 +40,7 @@ export const camera = {
         this.prevX = this.x;
         this.prevY = this.y;
 
-        const speed = 0.1;
+        const speed = 0.25;
         this.x += (this.targetX - this.x) * speed;
         this.y += (this.targetY - this.y) * speed;
         this.clamp();

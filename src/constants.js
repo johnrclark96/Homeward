@@ -1,6 +1,6 @@
 // Core engine constants. Sourced from HOMEWARD-ARCHITECTURE.md §3.
 
-export const TICK_RATE = 1000 / 30;    // 30 Hz logic update (33.33ms per tick)
+export const TICK_RATE = 1000 / 60;    // 60 Hz logic update (16.67ms per tick)
 export const CANVAS_W = 480;            // native pixels
 export const CANVAS_H = 270;            // native pixels
 export const TILE_SIZE = 32;            // pixels per tile

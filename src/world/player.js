@@ -45,8 +45,8 @@ export function createPlayer(characterId, gridX, gridY) {
         pixelX: px,
         pixelY: py,
         // prev* are captured at the start of each update() so render() can
-        // interpolate between logic ticks (30Hz logic, 60Hz render). Without
-        // this, the sprite snaps once per tick instead of moving smoothly.
+        // interpolate between logic ticks. With 60Hz logic on a 60Hz display
+        // alpha ≈ 0 and this is a no-op, but it stays correct on 120/144Hz.
         prevPixelX: px,
         prevPixelY: py,
         startX: px,
@@ -101,7 +101,7 @@ export function createPlayer(characterId, gridX, gridY) {
                     this.onArrived();
                     const sameMode = modeMachine.getMode() === modeBefore;
                     // Without the chain, holding a direction key produces a
-                    // 0-33ms pause between every tile (one full 30Hz update
+                    // 0-16ms pause between every tile (one full 60Hz update
                     // of latency). Re-checking input on the same tick the
                     // tween ends keeps movement snappy.
                     if (sameMode && this.active && !this.moving &&
@@ -204,7 +204,7 @@ export function createPlayer(characterId, gridX, gridY) {
 
         render(ctx, alpha = 0) {
             // Interpolate visual position between this tick and last so the sprite
-            // moves smoothly at 60Hz, not in 30Hz steps.
+            // stays smooth on high-refresh displays (no-op on 60Hz).
             const ipx = this.prevPixelX + (this.pixelX - this.prevPixelX) * alpha;
             const ipy = this.prevPixelY + (this.pixelY - this.prevPixelY) * alpha;
             const rx = Math.round(ipx + (TILE_SIZE - this.spriteWidth) / 2);

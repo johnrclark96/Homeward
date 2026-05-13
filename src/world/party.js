@@ -59,6 +59,9 @@ export function initParty(spawnTileX, spawnTileY, initialFacing = 'south') {
         const p = createPlayer(id, tx, ty);
         p.active = (i === activeIndex);
         p.facing = initialFacing;
+        // Followers tween faster than the leader so they can close gaps when
+        // the leader walks continuously. Leader = 200ms, followers = 150ms.
+        p.MOVE_DURATION = (i === activeIndex) ? 200 : 150;
         characters[id] = p;
     }
 
@@ -140,6 +143,9 @@ export function switchCharacter() {
 
     characters[prevId].active = false;
     characters[newId].active = true;
+    // Leader tweens slower (200ms) than followers (150ms) so the chain can close gaps.
+    characters[prevId].MOVE_DURATION = 150;
+    characters[newId].MOVE_DURATION = 200;
 
     // Stop any in-flight tween on the new leader so it doesn't keep walking
     // in the direction it was being steered as a follower.
@@ -151,6 +157,28 @@ export function switchCharacter() {
         newLeader.prevPixelY = newLeader.pixelY;
         newLeader.moving = false;
         newLeader.moveTimer = 0;
+    }
+
+    // Snap any follower that has drifted far from the new leader (>6 tiles
+    // Manhattan) to a position just behind them. Without this, repeated
+    // character switches can strand followers across the map and they never
+    // catch up. Falls back to the leader's tile if the behind-slot is blocked.
+    const MAX_FOLLOW_DISTANCE = 6;
+    const back = BEHIND_OFFSET[newLeader.facing] || BEHIND_OFFSET.south;
+    const followersForSnap = getFollowers();
+    for (let i = 0; i < followersForSnap.length; i++) {
+        const f = followersForSnap[i];
+        const dist = Math.abs(f.gridX - newLeader.gridX) +
+                     Math.abs(f.gridY - newLeader.gridY);
+        if (dist > MAX_FOLLOW_DISTANCE) {
+            const snapX = newLeader.gridX + back.dx * (i + 1);
+            const snapY = newLeader.gridY + back.dy * (i + 1);
+            if (!isBlocked(snapX, snapY)) {
+                f.snapToGrid(snapX, snapY, newLeader.facing);
+            } else {
+                f.snapToGrid(newLeader.gridX, newLeader.gridY, newLeader.facing);
+            }
+        }
     }
 
     // Re-seed history from current party positions so followers don't sit
