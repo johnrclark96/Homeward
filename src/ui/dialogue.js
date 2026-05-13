@@ -200,12 +200,12 @@ export const dialogueMode = {
         const boxW = CANVAS_W - BOX_MARGIN * 2;
         const boxH = BOX_HEIGHT;
 
-        // Semi-transparent dark background.
+        // Opaque dark background — sprites must not bleed through during
+        // conversation. A semi-transparent box made entities visible behind
+        // the speaker name, which broke the "private moment" feel.
         ctx.save();
-        ctx.globalAlpha = 0.85;
         ctx.fillStyle = '#3A2E28';
         ctx.fillRect(boxX, boxY, boxW, boxH);
-        ctx.globalAlpha = 1;
 
         // Thin warm border.
         ctx.strokeStyle = '#F0E0C8';

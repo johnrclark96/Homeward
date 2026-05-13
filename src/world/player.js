@@ -5,8 +5,10 @@
 
 import { TILE_SIZE, CHARACTER_DIMS } from '../constants.js';
 import * as input from '../engine/input.js';
+import * as transitions from '../engine/transitions.js';
+import * as modeMachine from '../state/mode-machine.js';
 import { isBlocked } from './tilemap.js';
-import { isBlockingEntityAt } from './entity-registry.js';
+import { isBlockingEntityAt, getEntities } from './entity-registry.js';
 
 const DIR_VECTORS = {
     north:     { dx:  0, dy: -1 },
@@ -91,9 +93,24 @@ export function createPlayer(characterId, gridX, gridY) {
                     this.moving = false;
                     this.pixelX = this.targetX;
                     this.pixelY = this.targetY;
+                    // Capture the active mode before dispatch — if a triggered
+                    // entity (Little Thing, transition, etc.) pushes a new mode,
+                    // we must NOT chain another move on the same tick or the
+                    // player walks off the trigger tile while the overlay is up.
+                    const modeBefore = modeMachine.getMode();
                     this.onArrived();
+                    const sameMode = modeMachine.getMode() === modeBefore;
+                    // Without the chain, holding a direction key produces a
+                    // 0-33ms pause between every tile (one full 30Hz update
+                    // of latency). Re-checking input on the same tick the
+                    // tween ends keeps movement snappy.
+                    if (sameMode && this.active && !this.moving &&
+                        !transitions.isInputLocked()) {
+                        const dir = input.getDirection();
+                        if (dir) this.tryMove(dir);
+                    }
                 }
-            } else if (this.active) {
+            } else if (this.active && !transitions.isInputLocked()) {
                 const dir = input.getDirection();
                 if (dir) this.tryMove(dir);
             }
@@ -168,7 +185,21 @@ export function createPlayer(characterId, gridX, gridY) {
         },
 
         onArrived() {
-            // Trigger zone / encounter checks land here in Session 3.
+            // Dispatch to anything sharing this tile (Little Things, trigger
+            // zones, encounter zones, ability spots, etc.). Entities opt in by
+            // exposing onPlayerArrived(player); silent skip otherwise. The
+            // active player is the only one that drives this — followers walk
+            // through everything per spec.
+            if (!this.active) return;
+            const list = getEntities();
+            for (const e of list) {
+                if (e === this) continue;
+                if (!e.active) continue;
+                if (e.gridX !== this.gridX || e.gridY !== this.gridY) continue;
+                if (typeof e.onPlayerArrived === 'function') {
+                    e.onPlayerArrived(this);
+                }
+            }
         },
 
         render(ctx, alpha = 0) {

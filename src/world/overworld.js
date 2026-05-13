@@ -6,11 +6,14 @@ import { TILE_SIZE } from '../constants.js';
 import * as tilemap from './tilemap.js';
 import { camera } from '../engine/camera.js';
 import * as input from '../engine/input.js';
+import * as transitions from '../engine/transitions.js';
 import { testMap, TEST_TILE_COLORS } from './data/test-map.js';
 import {
     initParty, updateParty, getActiveCharacter, getPartyEntities,
 } from './party.js';
 import { createNPC } from './npc.js';
+import { createLittleThing } from './little-things.js';
+import { createTriggerZone } from './trigger-zone.js';
 import {
     setEntities, getInteractableAt,
 } from './entity-registry.js';
@@ -52,11 +55,20 @@ export function createOverworld() {
 
             initParty(spawnTileX, spawnTileY, 'south');
 
-            // Build the entity list: party first, then NPCs from the map.
+            // Build the entity list: party first, then map-defined entities.
+            // Order doesn't matter for collision lookup or input dispatch, but
+            // Y-sort happens per frame from this list.
             entities.length = 0;
             for (const member of getPartyEntities()) entities.push(member);
             for (const obj of tilemap.getEntitiesOfType('npc')) {
                 entities.push(createNPC(obj));
+            }
+            for (const obj of tilemap.getEntitiesOfType('little_thing')) {
+                const lt = createLittleThing(obj);
+                if (lt) entities.push(lt);
+            }
+            for (const obj of tilemap.getEntitiesOfType('transition')) {
+                entities.push(createTriggerZone(obj));
             }
             setEntities(entities);
 
@@ -65,6 +77,12 @@ export function createOverworld() {
         },
 
         exit() {
+            // Let entities release event subscriptions (Little Things subscribe
+            // to party:switched and would otherwise leak across overworld
+            // re-entries in later milestones).
+            for (const e of entities) {
+                if (typeof e.destroy === 'function') e.destroy();
+            }
             entities.length = 0;
             setEntities(entities);
             initialized = false;
@@ -86,7 +104,11 @@ export function createOverworld() {
             }
 
             // Action button → talk-to-NPC (when standing still, facing one).
-            if (input.wasPressed('action')) tryInteract();
+            // Suppressed during a fade so the player can't open dialogue while
+            // the screen is going dark.
+            if (!transitions.isInputLocked() && input.wasPressed('action')) {
+                tryInteract();
+            }
 
             const active = getActiveCharacter();
             if (active) camera.follow(active);

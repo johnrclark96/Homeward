@@ -8,6 +8,7 @@
 
 import * as input from '../engine/input.js';
 import * as events from '../engine/events.js';
+import * as transitions from '../engine/transitions.js';
 import { createPlayer } from './player.js';
 import { isBlocked } from './tilemap.js';
 import { getState } from '../state/game-state.js';
@@ -68,7 +69,9 @@ export function initParty(spawnTileX, spawnTileY, initialFacing = 'south') {
 
 export function updateParty(dt) {
     // Tab → cycle active character. Edge-triggered so a held key only fires once.
-    if (input.wasPressed('switch')) {
+    // Suppressed during fade transitions so the player can't switch leaders
+    // while the screen is dark.
+    if (!transitions.isInputLocked() && input.wasPressed('switch')) {
         switchCharacter();
     }
 

@@ -78,6 +78,18 @@ export const testMap = {
                     height: TILE_SIZE,
                     properties: { targetMap: 'ch0-street', targetSpawn: 'from_apartment' },
                 },
+                {
+                    name: 'lt_ch0_water',
+                    type: 'little_thing',
+                    x: 13 * TILE_SIZE,
+                    y: 8 * TILE_SIZE,
+                    width: TILE_SIZE,
+                    height: TILE_SIZE,
+                    properties: {
+                        id: 'lt_ch0_water',
+                        text: "She always makes sure everyone has water before she gets her own.",
+                    },
+                },
             ],
         },
     ],

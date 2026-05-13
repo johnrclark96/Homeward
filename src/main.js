@@ -5,6 +5,7 @@ import * as input from './engine/input.js';
 import { startLoop } from './engine/game-loop.js';
 import * as modeMachine from './state/mode-machine.js';
 import { createOverworld } from './world/overworld.js';
+import * as hud from './ui/hud.js';
 
 function boot() {
     const canvasEl = document.getElementById('game');
@@ -15,6 +16,7 @@ function boot() {
 
     canvasMod.init(canvasEl);
     input.init();
+    hud.init();
 
     window.addEventListener('resize', () => canvasMod.resize());
 
