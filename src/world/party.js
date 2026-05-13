@@ -84,15 +84,18 @@ export function updateParty(dt) {
         if (c) c.update(dt);
     }
 
-    // Record leader arrivals into the history — but only when they're standing
-    // still AND on a tile we haven't already recorded as the latest entry.
+    // Record every tile the leader visits, deduped by gridX/gridY/facing.
+    // We do NOT gate on !leader.moving: tryMove() updates gridX/gridY at the
+    // START of a tween, and chain-on-arrival re-fires tryMove the same tick a
+    // tween ends, so during continuous walking the leader is always moving.
+    // Gating on !moving would starve history, and followers (which need
+    // history.length >= FOLLOW_DELAY*(i+1)) would never advance. The dedup
+    // check handles the "don't double-record mid-tween" case on its own.
     const leader = getActiveCharacter();
-    if (!leader.moving) {
-        const last = history[history.length - 1];
-        if (!last || last.x !== leader.gridX || last.y !== leader.gridY ||
-            last.facing !== leader.facing) {
-            history.push({ x: leader.gridX, y: leader.gridY, facing: leader.facing });
-        }
+    const last = history[history.length - 1];
+    if (!last || last.x !== leader.gridX || last.y !== leader.gridY ||
+        last.facing !== leader.facing) {
+        history.push({ x: leader.gridX, y: leader.gridY, facing: leader.facing });
     }
 
     // Drive each follower one tile toward its current history target. The
