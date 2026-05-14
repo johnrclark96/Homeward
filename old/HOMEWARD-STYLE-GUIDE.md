@@ -46,8 +46,8 @@ Three reasons:
 |-----------|------------|----------------|-------|
 | Annie | 32 × 48 px | 1 × 1.5 tiles | Standard human proportions, slightly chibi. Head is ~40% of body height. |
 | John | 32 × 48 px | 1 × 1.5 tiles | Same proportions as Annie, slightly broader shoulders. |
-| Obi | 32 × 32 px | 1 × 1 tile | Lean, athletic build (NOT stocky beagle shape). White-dominant body, brown head patch, floppy brown ears. |
-| Luna | 24 × 32 px | ~0.75 × 1 tile | Smaller than Obi. Sleek bengal build. Dark tabby stripes over golden-brown coat. Disproportionately tall pointed ears (primary silhouette feature). |
+| Obi | 32 × 32 px | 1 × 1 tile | Beagle proportions. Low to the ground, long ears. |
+| Luna | 24 × 32 px | ~0.75 × 1 tile | Smaller than Obi. Cats are sleek. Bengal markings, tall ears. |
 | NPCs | 32 × 48 px | 1 × 1.5 tiles | Same as player characters for visual consistency. |
 
 ### Proportions (Human Characters)
@@ -63,7 +63,7 @@ Three reasons:
     32px wide
 ```
 
-- **Head:** Round-ish, ~14px tall including hair. Eyes are 2px dots or small ovals. Mouth is 1-2px. Hair defines the character silhouette — Annie's warm honey-blonde hair and John's darker hair should read clearly even at distance.
+- **Head:** Round-ish, ~14px tall including hair. Eyes are 2px dots or small ovals. Mouth is 1-2px. Hair defines the character silhouette — Annie's blonde hair and John's darker hair should read clearly even at distance.
 - **Body:** Simplified torso. Annie's red sweater/top, John's characteristic shirt. Arms at sides or slightly animated.
 - **Legs:** Simple 2-frame walk cycle minimum. 4-frame for smoother animation.
 
@@ -85,44 +85,10 @@ For Obi and Luna, add: sit, sleep, run, sniff/perch, and reaction poses (happy, 
 ### Silhouette Test
 
 Every character must be identifiable from their silhouette alone at 1× scale. This means:
-- Annie: long warm honey-blonde hair silhouette + red sweater
-- John: broader shoulders + short dark hair + slight stubble
-- Obi: white-dominant body + brown head cap + floppy ears + lean athletic build (NOT beagle-stocky)
-- Luna: disproportionately tall pointed ears + sleek small body + long tail
-
-### Character Physical Reference (From Life)
-
-These descriptions are based on photographs of the real people and animals. Use them to inform all art prompts and evaluate all generated output. PixelLab prompts should capture the *essence* of these descriptions at pixel scale, not reproduce photographic detail.
-
-**Annie:**
-- Hair: Long, warm honey-brown / dirty blonde. Falls past shoulders, slight natural wave. NOT bright yellow — the palette color `#F0D070` is a deliberate stylization for pixel readability against warm tilesets, but prompts should say "warm honey-blonde" to avoid anime-yellow output.
-- Face: Round, warm, genuine smile. Kind eyes.
-- Build: Petite to average. Noticeably smaller than John.
-- Signature look: Red sweater/top is the in-game identifier. In life she wears varied colors, but the red is the game's visual shorthand.
-
-**John:**
-- Hair: Medium-dark brown, kept short. Noticeably darker than Annie's.
-- Facial hair: Light stubble/short beard. At 32×48, this is 1-2 pixels of darker color on the chin — subtle but adds character. Test with and without.
-- Build: Medium-tall, broad shoulders. Casual posture. Reads as "bigger" than Annie at sprite scale.
-- Signature look: Blue-gray casual shirt (`#5878A0`). Relaxed, unpretentious.
-
-**Obi:**
-- **CRITICAL: Never use the word "beagle" in any PixelLab prompt.** Obi is 50% beagle, 25% Australian Shepherd, 25% Australian Cattle Dog and does NOT look like a typical beagle. The AI will hallucinate a stocky tricolor hound.
-- Body: ~75-80% white (`#F0E8E0`) with subtle dark speckles/ticking scattered across the torso — like freckles, not patches. Ticking may not survive at 32×32; white-dominant body is sufficient.
-- Head: Brown/tan patch (`#A07048` / `#D0A878`) covering the crown and both ears. This is his most recognizable feature from the top-down camera angle.
-- Ears: Floppy, medium-length, brown. Hang past the jawline.
-- Build: LEAN and athletic with long legs. Looks like a runner. NOT stocky, NOT barrel-chested, NOT low to the ground.
-- Accessories: Dark collar with round tag. Blue bandana (`#4878B0`).
-- Prompt template: `lean athletic white dog with brown patch on head and floppy brown ears, small dark speckles on white body, dark collar with round tag, blue bandana, NOT a beagle NOT stocky`
-
-**Luna:**
-- **HIGHEST RISK ASSET.** PixelLab is weak below 32×32, and Luna's 24×32 target requires generating at 32×32 and re-canvasing.
-- Coat: Warm brown/tawny base (`#C89848`) with prominent **dark tabby stripes** (`#806030`) — more stripe pattern than classic bengal rosettes. Stripes are bold and nearly black in real life; `#806030` is the stylized palette equivalent.
-- Ears: Disproportionately tall pointed ears — **this is her #1 silhouette feature at pixel scale.** Think satellite dishes. If the ears read, Luna reads.
-- Eyes: Large, golden-green (`#88B848`). Every photo radiates judgment. At pixel scale, 1-2 green pixels for the eyes if there's room.
-- Body: Sleek, muscular but lean. Classic bengal. Noticeably smaller than Obi.
-- Tail: Long.
-- Prompt template: `small sleek bengal cat with warm brown tabby-striped coat, very tall pointed ears, golden-green eyes, long tail, dark stripes on golden-brown fur`
+- Annie: hair shape + sweater color
+- John: build + hair + stance
+- Obi: ear shape + body proportions + bandana color
+- Luna: tall ears + tail + sleek body + smaller size
 
 ---
 
@@ -157,7 +123,7 @@ The game's base palette is warm and earthy. These are the colors that define the
 
 | Name | Hex | Character/Usage |
 |------|-----|----------------|
-| Annie Blonde | `#F0D070` | Annie's hair (stylized — real hair is warm honey-brown; brightened for pixel readability) |
+| Annie Blonde | `#F0D070` | Annie's hair |
 | Annie Red | `#D85040` | Annie's sweater/top |
 | John Shirt | `#5878A0` | John's characteristic shirt (soft blue-gray) |
 | John Hair | `#604830` | John's hair |
@@ -406,55 +372,11 @@ PixelLab's style reference system works well for ~20 generations, then drifts. M
 - **Use inpainting** rather than full re-rolls when something is 90% right. Cheaper (credit-wise) and preserves what's already working.
 - **Export every generated PNG to local disk immediately.** Never rely on PixelLab's cloud as your archive.
 
-### Character Prompt Templates
-
-**Universal suffix (append to ALL character prompts):**
+### Character Prompt Template
 ```
-warm cozy pixel art, soft outlines, no pure black, earthy tones
-```
-
-**Universal negative (use on ALL character prompts):**
-```
-pure black, pure white, harsh outlines, neon colors, anime style, gradient shading
-```
-
-**Annie (portrait, 64×64):**
-```
-chibi girl with long warm honey-blonde wavy hair, kind round face,
-big warm smile, red sweater, head and shoulders portrait,
-cozy pixel art RPG style, facing south, transparent background
-```
-
-**Annie (overworld, 32×48):**
-```
-chibi girl with long warm honey-blonde wavy hair, red sweater,
-top-down RPG sprite, chibi proportions, [direction],
-transparent background, style reference: [Annie portrait anchor]
-```
-
-**John (overworld, 32×48):**
-```
-chibi young man with short dark brown hair, light stubble,
-broad shoulders, blue-gray casual shirt, top-down RPG sprite,
-chibi proportions, [direction], transparent background,
-style reference: [Annie portrait anchor]
-```
-
-**Obi (overworld, 32×32) — NEVER say "beagle":**
-```
-lean athletic white dog with brown patch on head and floppy brown ears,
-small dark speckles on white body, dark collar with round tag,
-blue bandana, top-down RPG sprite, [direction], transparent background,
-style reference: [Annie portrait anchor]
-```
-Negative (add to universal): `beagle, hound, stocky, barrel-chested, tricolor, black patches`
-
-**Luna (generated at 32×32, re-canvased to 24×32):**
-```
-small sleek bengal cat with warm brown tabby-striped coat,
-very tall pointed ears, golden-green eyes, long tail,
-dark stripes on golden-brown fur, top-down RPG sprite,
-[direction], transparent background,
+[character description], 32x48 pixel art, top-down RPG style,
+warm cozy color palette, no pure black outlines, chibi proportions,
+[specific pose/direction], transparent background,
 style reference: [Annie portrait anchor]
 ```
 

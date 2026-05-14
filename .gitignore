@@ -1,0 +1,81 @@
+# === Homeward .gitignore ===
+# Solo hobby project. Keep this list short and meaningful.
+
+# --- Secrets ---
+# Never commit API tokens (PixelLab, anything else). They belong in user-level Claude config.
+.env
+.env.*
+*.env
+secrets.json
+*.pem
+*.key
+
+# --- Operating system files ---
+# Windows
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+desktop.ini
+$RECYCLE.BIN/
+*.lnk
+# macOS (just in case)
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# --- Editor / IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.history/
+*.code-workspace
+
+# --- Claude Code project-local ---
+# Machine-specific Claude settings (overrides, hooks tied to your local paths)
+.claude/settings.local.json
+# NOTE: .claude/commands/, .claude/skills/, and .claude/settings.json are intentionally NOT
+# ignored. If you create them deliberately, they should be tracked.
+
+# --- Aseprite working files ---
+# Master .aseprite files ARE tracked (they're the source of truth for sprite sheets).
+# Only ignore the auto-backups and lock files.
+*.aseprite-backup
+*.aseprite-tmp
+*.ase-bak
+*.bak
+
+# --- PixelLab / asset pipeline temp ---
+# Downloaded ZIPs that landed in the wrong place; per the workflow doc, raw PNGs go to
+# assets/sprites/<category>/<name>/raw/ and ARE tracked.
+*.zip.partial
+.pixellab-tmp/
+
+# --- Node / npm (defensive — no build step today, but tools/ may grow scripts) ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn/
+
+# --- Python (defensive — tools/ may add automation scripts) ---
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# --- Build artifacts (defensive) ---
+dist/
+build/
+.cache/
+.parcel-cache/
+
+# --- Logs / temp ---
+*.log
+logs/
+tmp/
+temp/
+*.tmp

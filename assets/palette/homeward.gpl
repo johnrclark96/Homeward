@@ -1,0 +1,53 @@
+GIMP Palette
+Name: Homeward
+Columns: 6
+#
+# === BASE RAMP (warm earth tones) ===
+255 248 240	Cream
+240 224 200	Warm Sand
+212 184 150	Soft Tan
+160 120 80	Warm Brown
+107 72 48	Deep Brown
+58 46 40	Charcoal
+#
+# === SKIN TONES ===
+248 224 200	Skin Light
+232 192 168	Skin Base
+200 152 128	Skin Shadow
+#
+# === NATURE ===
+216 232 192	Pale Sage
+136 184 88	Soft Green
+80 120 56	Forest
+48 80 40	Deep Forest
+136 200 232	Sky Blue
+88 152 192	Water
+56 104 136	Deep Water
+#
+# === GRAYS (urban, stone, metal) ===
+200 196 192	Light Gray
+152 148 144	Mid Gray
+96 92 88	Dark Gray
+#
+# === ANNIE ===
+240 208 112	Annie Blonde
+216 80 64	Annie Red
+#
+# === JOHN ===
+88 120 160	John Shirt
+96 72 48	John Hair
+#
+# === OBI ===
+240 232 224	Obi White
+160 112 72	Obi Brown
+208 168 120	Obi Tan
+72 120 176	Bandana Blue
+#
+# === LUNA ===
+200 152 72	Luna Gold
+128 96 48	Luna Spots
+136 184 72	Luna Eyes
+#
+# === EFFECTS ===
+248 232 144	Warm Glow
+216 136 128	Blush Pink

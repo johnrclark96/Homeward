@@ -54,9 +54,8 @@ Hidden throughout the world are **the Little Things** — small, warm, glowing c
   - *"Cozy vibes"* — heals one ally significantly
   - *"Group hug"* — small heal to entire party, removes status effects
 
-### 3c. Obi — The Loyal Explorer (Dog)
+### 3c. Obi — The Loyal Explorer (Beagle)
 
-- **Breed:** 50% beagle, 25% Australian Shepherd, 25% Australian Cattle Dog. Does NOT look like a typical beagle — lean, athletic build with long legs and a white-dominant body with subtle dark ticking/speckles. Brown patch on head, floppy brown ears. Never describe as "beagle" in art prompts; the AI will hallucinate a stocky tricolor hound.
 - **Role:** Tracker, digger, tank
 - **Overworld abilities:**
   - **Sniff** — reveals hidden items, buried treasures, tracks scent trails to secrets. The screen gets a subtle scent-trail overlay when active.

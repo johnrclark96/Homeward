@@ -32,38 +32,53 @@ Characters: Annie/John = 32×48 px, Obi = 32×32 px, Luna = 24×32 px. All move 
 
 ## Project Structure
 
+The block below is the **target** structure for the finished game. Directories marked **(exists)** are built today; the rest are aspirational. Don't create empty directories speculatively — add them as code lands.
+
 ```
 homeward/
-├── index.html
+├── index.html                          (exists)
+├── README.md                           (exists)
+├── CLAUDE.md, HOMEWARD-*.md            (exists — reference docs at repo root)
 ├── src/
-│   ├── main.js
-│   ├── constants.js
-│   ├── engine/        # game-loop, canvas, input, camera, assets, audio, save, events, transitions
-│   ├── state/         # game-state, mode-machine, flags, warmth, time-of-day
-│   ├── world/         # tilemap, entity, player, party, npc, interactable, little-things, overworld
-│   ├── battle/        # battle state machine, actions, befriend, enemy-ai, rewards, renderer
-│   ├── ui/            # hud, dialogue, menu, inventory, journal, bestiary, party-stats, save-menu
-│   ├── cutscene/      # cutscene controller + action primitives
-│   ├── screens/       # title, loading, credits
-│   ├── activities/    # fishing, cooking, photography, foraging
-│   ├── characters/    # stats, annie, john, obi, luna
-│   └── data/          # chapter data bundles, global JSON data files
+│   ├── main.js                         (exists)
+│   ├── constants.js                    (exists)
+│   ├── engine/        # camera, canvas, events, game-loop, input, transitions   (partial)
+│   │                  # eventual additions: assets, audio, save
+│   ├── state/         # game-state, mode-machine                                (partial)
+│   │                  # eventual additions: flags, warmth, time-of-day
+│   ├── world/         # entity, entity-registry, little-things, npc, overworld, party,
+│   │                  # player, tilemap, trigger-zone, data/                    (partial)
+│   │                  # eventual additions: interactable
+│   ├── ui/            # dialogue, hud, little-thing-overlay                     (partial)
+│   │                  # eventual additions: menu, inventory, journal, bestiary,
+│   │                  # party-stats, save-menu
+│   ├── battle/        # battle state machine, actions, befriend, enemy-ai,
+│   │                  # rewards, renderer                                       (not yet)
+│   ├── cutscene/      # cutscene controller + action primitives                 (not yet)
+│   ├── screens/       # title, loading, credits                                 (not yet)
+│   ├── activities/    # fishing, cooking, photography, foraging                 (not yet)
+│   ├── characters/    # stats, annie, john, obi, luna                           (not yet)
+│   └── data/          # chapter data bundles, global JSON data files            (not yet)
 ├── assets/
-│   ├── sprites/
-│   ├── tiles/
-│   ├── portraits/
-│   ├── ui/
-│   └── audio/
-└── tools/
+│   ├── palette/homeward.gpl            (exists — canonical Homeward palette)
+│   ├── sprites/                        (not yet — first PixelLab outputs land here)
+│   ├── tiles/                          (not yet)
+│   ├── portraits/                      (not yet)
+│   ├── ui/                             (not yet)
+│   └── audio/                          (not yet)
+├── test sprites/                       (exists — early Aseprite experiments)
+├── old/                                (exists — archived prior versions of GDD/Style Guide)
+└── tools/                              (not yet)
 ```
 
 ## Reference Documents
 
-Three docs in this directory define the full project. Read them when you need specifics:
+Four docs in this directory define the full project. Read them when you need specifics:
 
 - **HOMEWARD-GDD.md** — Game design. Story, characters, abilities, combat, chapter structure, the Little Things collectible system, mini-activities, progression. Read for *what* the game does.
 - **HOMEWARD-STYLE-GUIDE.md** — Visual bible. Resolution, palette (hex values), character dimensions, sprite sheet specs, UI layout, animation frame rates, art pipeline. Read for *what it looks like*.
 - **HOMEWARD-ARCHITECTURE.md** — Technical architecture. Game loop, mode machine, state schema, rendering pipeline, entity system, movement/collision, dialogue data format, battle state machine, asset loading, all data schemas. Read for *how the code works*. This is the primary implementation reference.
+- **HOMEWARD-PIXELLAB-WORKFLOW.md** — Operational manual for the PixelLab MCP. Tool catalog, parameter defaults, recipes for common iteration loops, asset ingestion paths, anti-patterns, cost guardrails. Read *before generating any art from this session*. Visual decisions still live in the Style Guide; this doc covers driving the MCP.
 
 ## Coding Conventions
 
@@ -77,7 +92,17 @@ Three docs in this directory define the full project. Read them when you need sp
 
 ## Current State
 
-Pre-production. The three design docs are complete. No game code exists yet. Milestone 0 (the vertical slice) is the current target: Annie walks around a tile map, switches characters, talks to an NPC, finds a Little Thing, transitions between areas.
+**Milestone 0 vertical slice is running with placeholder graphics.** The engine boots, the mode machine drives the overworld, the party walks the tile map, dialogue plays, Little Things glow and surface their overlay, area transitions work. Characters are drawn as colored rectangles (see `CHARACTER_DIMS` in `src/constants.js`) waiting for real sprites.
+
+**Current focus: visual asset pipeline.** PixelLab MCP is installed and operational (see Tooling below). The Style Guide and HOMEWARD-PIXELLAB-WORKFLOW.md define the pipeline. The four player characters, Wicker Park apartment + street tilesets, and NPC sprites are the immediate generation queue.
+
+**Next code milestones** (after baseline art exists): battle mode (`src/battle/`), save system (`src/engine/save.js`), assets/audio loaders, time-of-day + warmth state, and full character stats data in `src/characters/`.
+
+## Tooling
+
+- **PixelLab MCP server** is installed at user scope (`claude mcp add -s user -t http pixellab https://api.pixellab.ai/mcp -H "Authorization: Bearer <token>"`). API token lives only in user-level Claude config — never commit it. Verify with `claude mcp list`; smoke-test with `mcp__pixellab__list_characters`. Account state and one existing Annie prototype character are documented in HOMEWARD-PIXELLAB-WORKFLOW.md §4d.
+- **Aseprite** is the cleanup-and-export tool. Master `.aseprite` files live alongside their `raw/` and `exports/` siblings under `assets/sprites/<category>/<name>/` per the workflow doc §6.
+- **Static dev server** is whatever serves the repo (`npx serve .` or VS Code Live Server). No build, no bundler.
 
 ## Color Palette (Key Values)
 
