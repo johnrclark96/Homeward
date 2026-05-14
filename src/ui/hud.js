@@ -11,8 +11,8 @@ import {
 import * as events from '../engine/events.js';
 import { getState } from '../state/game-state.js';
 
-const SWATCH_SIZE = 6;
-const PADDING = 6;
+const SWATCH_SIZE = 12;
+const PADDING = 12;
 const TEXT_COLOR = '#FFF8F0';     // Cream
 const HINT_COLOR = '#888888';
 const FADE_AFTER_MS = 3000;
@@ -73,7 +73,7 @@ export function render(ctx) {
 
     ctx.save();
     ctx.globalAlpha = alpha;
-    ctx.font = '8px monospace';
+    ctx.font = '16px monospace';
     ctx.textBaseline = 'middle';
 
     // Bottom-left: swatch + active name.
@@ -87,7 +87,7 @@ export function render(ctx) {
 
     ctx.textAlign = 'left';
     ctx.fillStyle = TEXT_COLOR;
-    ctx.fillText(name, swatchX + SWATCH_SIZE + 4, swatchY + SWATCH_SIZE / 2 + 0.5);
+    ctx.fillText(name, swatchX + SWATCH_SIZE + 8, swatchY + SWATCH_SIZE / 2 + 0.5);
 
     // Bottom-right: switch hint.
     const switchKey = (KEY_BINDINGS.switch[0] || 'Tab').replace(/^Key/, '');

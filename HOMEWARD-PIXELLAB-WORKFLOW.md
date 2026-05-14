@@ -106,7 +106,7 @@ Don't poll in a tight loop. Either do other work in between, or wait at least ~9
 
 ### 2b-bis. Canvas auto-expansion
 
-`create_character` adds ~40% padding around the requested `size` to make room for animation frames. A `size: 48` request produces a **68×68 canvas** with the character centered at ~48px tall. This matters for ingestion — the raw PNG is NOT 32×48; it's a larger canvas with transparency. Aseprite cleanup includes cropping to our target dimensions (32×48 for humans, 32×32 for Obi, 24×32 for Luna).
+`create_character` adds ~40% padding around the requested `size` to make room for animation frames. A `size: 96` request produces a **~135×135 canvas** with the character centered at ~96px tall. This matters for ingestion — the raw PNG is NOT 64×96; it's a larger canvas with transparency. Aseprite cleanup includes cropping to our target dimensions (64×96 for humans, 64×64 for Obi, 48×64 for Luna).
 
 ### 2b-ter. Inline previews
 
@@ -201,7 +201,7 @@ negative: pure black, pure white, harsh outlines, neon colors, anime style, grad
 | `mode` | `standard` for iteration & NPCs; `pro` only for final production mains with `reference_image_base64` set to Annie's portrait | Standard = 1 generation. Pro = 20–40. See §2a. |
 | `body_type` | `humanoid` (Annie/John/NPCs), `quadruped` (Obi → `template: "dog"`, Luna → `template: "cat"`) | |
 | `n_directions` | `4` for prototyping, `8` for production mains and NPCs you'll actually animate | 4-dir is faster + same 1-gen cost in standard mode. Style guide §2 requires 8-dir for shipped player characters. |
-| `size` | `48` for Annie/John/NPCs, `32` for Obi, **`32` for Luna** (re-canvas to 24×32 in Aseprite — see §7c) | Remember canvas auto-expands ~40% (size 48 → 68px canvas, §2b-bis). |
+| `size` | `96` for Annie/John/NPCs, `64` for Obi, `64` for Luna (her body fills a 48×64 footprint inside the 64-px frame) | Remember canvas auto-expands ~40% (size 96 → ~135px canvas, §2b-bis). |
 | `proportions` | `{"type": "preset", "name": "chibi"}` (humanoid only; ignored for quadrupeds and pro mode) | Matches the GDD character feel |
 | `outline` | **`single color outline`** — explicitly override; the API default is `single color black outline` which violates Style Guide §3 | Outlines must be color-contextual, never pure black. Ignored in pro mode. |
 | `shading` | `basic shading` | Cozy aesthetic, no gradients. Ignored in pro mode. |
@@ -213,7 +213,7 @@ negative: pure black, pure white, harsh outlines, neon colors, anime style, grad
 
 | Parameter | Default for Homeward | Why |
 |-----------|----------------------|-----|
-| `tile_size` | **`{ width: 32, height: 32 }`** — explicitly override; the API default is 16×16 | Style guide §1. 16×16 is too small for our cozy detail level. |
+| `tile_size` | **`{ width: 64, height: 64 }`** — explicitly override; the API default is 16×16 | Style guide §1. 16×16 is too small for our cozy detail level. |
 | `view` | **`low top-down`** — explicitly override; the API default is `high top-down` (RTS angle) | Style guide §4. RPG camera. |
 | `outline` | `lineless` for grass/water; `single color outline` for paths/floors | Match how we want edges to read |
 | `shading` | `basic shading` | |
@@ -233,11 +233,18 @@ negative: pure black, pure white, harsh outlines, neon colors, anime style, grad
 
 ### 4d. Known existing assets (account state — refresh with `list_characters` if stale)
 
-As of the last verified check, the PixelLab account has at least one character on it:
+As of 2026-05-13 (post-cleanup), the PixelLab account state is:
 
-| ID | Description | Specs | Notes |
-|----|-------------|-------|-------|
-| `0f0f4956-f824-4d30-9a93-b0ff3366ca6c` | chibi girl with long warm honey-blonde wavy hair, kind round face, red sweater — created with standard mode, selective outline | 4 directions (S/E/N/W), 68×68 canvas, ~48px tall, low top-down | **Annie prototype.** Visually reads as Annie. Decide before any new generation: promote to working anchor, or regenerate as 8-direction pro-mode for true production anchor. Either decision is valid; document the choice in CLAUDE.md so future sessions don't re-debate. |
+| ID | Role | Specs | Notes |
+|----|------|-------|-------|
+| `0f0f4956-f824-4d30-9a93-b0ff3366ca6c` | **Annie working anchor** (source) | 4 directions (S/E/N/W), 68×68 canvas, ~40px tall, low top-down, selective outline, basic shading, medium detail | Original chibi girl with red sweater. Promoted from "Annie prototype" to working anchor on 2026-05-13 after head-to-head evaluation against a duplicate. Hair runs orange-yellow; see §4d-note. |
+| (state-edit ID, populated after polish) | **Annie polished anchor** | inherits from above | Created via `create_character_state` with edit pushing hair toward honey-brown and lengthening past sweater hem. **This is the version to use as visual reference for Obi/Luna/John prompts** once it lands. |
+
+**Cleanup history:** A duplicate prototype `fec5ae66-074a-4ec4-a960-589f5925971e` (low-detail variant, hair drifted further toward yellow) was deleted on 2026-05-13 — strictly inferior to `0f0f4956` on every Style Guide §10 criterion.
+
+**Note on the orange-yellow hair drift:** Standard-mode Annie generations from the existing prompt skew further from real-life "warm honey-brown" than the palette color `#F0D070` does. Future generations should bias prompt language toward "warm honey-brown with subtle golden highlights" rather than just "honey-blonde" — see Style Guide §2.
+
+The true production anchor (a hand-validated 64×64 portrait per Style Guide §8 "Portrait-First") does **not yet exist**. The 4-dir overworld anchor above is sufficient for early-validation tests; portrait generation is a separate later task.
 
 Always run `mcp__pixellab__list_characters` at session start. Treat this table as a hint, not gospel.
 
@@ -264,7 +271,7 @@ Use case: GDD specifies a new NPC; we want a placeholder sprite running around t
 2. mcp__pixellab__create_character with:
      description: "<GDD description> + universal suffix"
      n_directions: 4   # fast mode — 4 dirs is enough for placeholder
-     size: 48
+     size: 96
      body_type: humanoid
      proportions: chibi
      outline: "single color outline"
@@ -290,7 +297,7 @@ Use case: We're building out Chapter 1 (Kentucky). We need a grass/dirt-path til
      upper_description: "warm sand dirt path, well-worn earth"
      transition_size: 0.3
      transition_description: "scattered pebbles and small grass tufts at edge"
-     tile_size: { width: 32, height: 32 }
+     tile_size: { width: 64, height: 64 }
      view: "low top-down"
      outline: "lineless"
      shading: "basic shading"
@@ -307,7 +314,7 @@ Use case: We're building out Chapter 1 (Kentucky). We need a grass/dirt-path til
 ```
 1. mcp__pixellab__create_map_object:
      description: "<object> + style suffix"
-     width: 32, height: 32  (or 32×48 for tall props)
+     width: 64, height: 64  (or 64×96 for tall props)
      view: "high top-down" for short props, "low top-down" for tall props
      outline: "single color outline"
 2. Wait ~90s, get_map_object, download to assets/sprites/objects/<area>/raw/.
@@ -410,9 +417,9 @@ The style reference for new generations is **always the original hand-validated 
 
 He is 50% beagle + Aussie Shepherd + Cattle Dog. AI will hallucinate a stocky tricolor hound if you say "beagle." Use the exact prompt template in style guide §2 ("Obi"). Always include the negative: `beagle, hound, stocky, barrel-chested, tricolor, black patches`.
 
-### 7c. Never generate Luna at her final size (24×32)
+### 7c. Luna sizing — retired anti-pattern
 
-PixelLab degrades sharply below 32×32. Generate Luna at 32×32 with the cat filling the frame, then re-canvas to 24×32 in Aseprite. Style guide §2 ("Luna") and §8 cover this.
+Previously: Luna's 24×32 target was below PixelLab's 32×32 quality floor, so we generated her at 32×32 and re-canvased in Aseprite. After the May 2026 native-resolution doubling, Luna's target is 48×64 — comfortably above the threshold. Generate her natively at 48×64 (or 64×64 with the cat filling a 48-wide footprint); no re-canvasing required. Style guide §2 ("Luna") and §8 reflect the new flow.
 
 ### 7d. Never assume cloud retention
 

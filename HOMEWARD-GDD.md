@@ -435,15 +435,15 @@ The magic in this world is never explained. It's just *there*. Characters notice
 
 ### Style Target
 
-- **Resolution:** 32×32 tile grid, humans are 32×48 (1 tile wide, 1.5 tiles tall), Obi is 32×32, Luna is 24×32 (generated at 32×32 and re-canvased — PixelLab is weak below 32×32)
-- **Native canvas:** 480×270 px, scaled 4× to 1920×1080
+- **Resolution:** 64×64 tile grid, humans are 64×96 (1 tile wide, 1.5 tiles tall), Obi is 64×64, Luna is 48×64. All sprites are above PixelLab's 32×32 quality threshold so no re-canvasing is needed.
+- **Native canvas:** 960×540 px, scaled 2× to 1920×1080
 - **Palette:** Warm, cozy — earth tones, soft greens, warm yellows, sunset oranges. No pure black or white. Each chapter adds 3–5 local accent colors.
 - **Style reference:** Stardew Valley meets Earthbound. Charming, slightly chunky, expressive faces.
 
 ### Workflow (Portrait-First Anchoring)
 
-1. Generate Annie's **64×64 portrait** first — this is the true style anchor
-2. Derive Annie's **32×48 overworld sprite** using portrait as style reference
+1. Generate Annie's **128×128 portrait** first — this is the true style anchor
+2. Derive Annie's **64×96 overworld sprite** using portrait as style reference
 3. Generate **8-directional rotation** using the "Rotate character" Pro tool
 4. Generate **walk cycle** using skeleton animation (NOT text-based) with `fixed head → always`
 5. Repeat for John, Obi, Luna — always anchored to the original portrait set
@@ -454,7 +454,7 @@ The magic in this world is never explained. It's just *there*. Characters notice
 
 | Risk | Mitigation |
 |------|-----------|
-| Luna (24×32) quality | Generate at 32×32, re-canvas. Retro Diffusion backup. |
+| Luna (48×64) quality | Now above PixelLab's 32×32 threshold after the May 2026 resolution doubling — generate natively, no re-canvas. Retro Diffusion remains as fallback if drift appears. |
 | Style drift after ~20 generations | Always re-anchor to original portraits, never to recent output. Forced palette. |
 | 10–20% of animation frames need manual repair | Budget Aseprite cleanup time. Onion skinning to catch issues. |
 | PixelLab cloud-only (outage = blocked) | Export all PNGs to local disk immediately after every generation. |
@@ -590,9 +590,9 @@ homeward/
 
 ### Milestone 5 — Art Pipeline Validation & Content Pipeline
 - [ ] PixelLab Tier 2 subscribed, Aseprite purchased
-- [ ] Annie portrait (64×64, neutral) generated and approved as style anchor
+- [ ] Annie portrait (128×128, neutral) generated and approved as style anchor
 - [ ] Annie full pipeline: portrait → overworld sprite → 8-dir rotation → walk cycle → battle poses
-- [ ] Luna risk test: generate at 32×32, re-canvas to 24×32, evaluate quality. Decision gate: PixelLab or Retro Diffusion?
+- [ ] Luna native generation at 48×64 — evaluate quality. Decision gate: PixelLab or Retro Diffusion?
 - [ ] John and Obi full pipelines, anchored to Annie portrait
 - [ ] One tileset (Ch0 Wicker Park) generated via Wang format → Sprite Fusion → JSON verified in-engine
 - [ ] Aseprite cleanup workflow validated: palette snap, tag organization, sprite sheet export + JSON
@@ -633,7 +633,7 @@ homeward/
 
 1. **The Kentucky friend's name.** Use real name or fictionalize? (Probably fictionalize for the game, but base on reality.)
 2. **Car breakdown scene.** Piedmont chapter was cut, but the car breakdown was a good comic beat. Move it to another chapter? Maybe the Kentucky → Appalachia transition?
-3. **Hybrid art style.** John mentioned "pixel art / hybrid art" early on. The research supports a two-tier approach: 32×48 pixel art for overworld sprites, 64×64 pixel art for dialogue portraits (more detail, more expression). Both are pixel art but at different fidelity levels. True "hybrid" (mixing pixel art with high-res illustrated art) is not recommended — it's hard to make consistent and PixelLab doesn't support it.
+3. **Hybrid art style.** John mentioned "pixel art / hybrid art" early on. The research supports a two-tier approach: 64×96 pixel art for overworld sprites, 128×128 pixel art for dialogue portraits (more detail, more expression). Both are pixel art but at different fidelity levels. True "hybrid" (mixing pixel art with high-res illustrated art) is not recommended — it's hard to make consistent and PixelLab doesn't support it.
 
 ---
 

@@ -19,16 +19,18 @@
 ## Key Constants
 
 ```
-CANVAS_W = 480        // native pixels
-CANVAS_H = 270        // native pixels
-TILE_SIZE = 32        // pixels per tile
-SCALE = 4             // CSS scale factor → 1920×1080
+CANVAS_W = 960        // native pixels
+CANVAS_H = 540        // native pixels
+TILE_SIZE = 64        // pixels per tile
+SCALE = 2             // CSS scale factor → 1920×1080
 TICK_RATE = 1000/60   // 60 Hz logic update
 TILES_X = 15          // visible tiles horizontal
 TILES_Y ≈ 8.4         // visible tiles vertical
 ```
 
-Characters: Annie/John = 32×48 px, Obi = 32×32 px, Luna = 24×32 px. All move on the 32×32 grid.
+Characters: Annie/John = 64×96 px, Obi = 64×64 px, Luna = 48×64 px. All move on the 64×64 grid. Portraits = 128×128 px.
+
+> Note: the native resolution and tile size doubled in May 2026 so PixelLab-generated sprites have more pixel budget for detail. The viewport still shows ~15×8.4 tiles and characters still occupy the same apparent screen size at 1080p.
 
 ## Project Structure
 
@@ -94,7 +96,7 @@ Four docs in this directory define the full project. Read them when you need spe
 
 **Milestone 0 vertical slice is running with placeholder graphics.** The engine boots, the mode machine drives the overworld, the party walks the tile map, dialogue plays, Little Things glow and surface their overlay, area transitions work. Characters are drawn as colored rectangles (see `CHARACTER_DIMS` in `src/constants.js`) waiting for real sprites.
 
-**Current focus: visual asset pipeline.** PixelLab MCP is installed and operational (see Tooling below). The Style Guide and HOMEWARD-PIXELLAB-WORKFLOW.md define the pipeline. The four player characters, Wicker Park apartment + street tilesets, and NPC sprites are the immediate generation queue.
+**Current focus: visual asset pipeline.** PixelLab MCP is installed and operational (see Tooling below). The Style Guide and HOMEWARD-PIXELLAB-WORKFLOW.md define the pipeline. The native resolution has been doubled (960×540, 64-px tiles) to give PixelLab more pixel budget per sprite. The four player characters, Wicker Park apartment + street tilesets, and NPC sprites are the immediate generation queue.
 
 **Next code milestones** (after baseline art exists): battle mode (`src/battle/`), save system (`src/engine/save.js`), assets/audio loaders, time-of-day + warmth state, and full character stats data in `src/characters/`.
 

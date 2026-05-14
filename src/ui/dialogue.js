@@ -14,14 +14,14 @@ import * as modeMachine from '../state/mode-machine.js';
 import { setFlag, addWarmth } from '../state/game-state.js';
 import { getDialogue } from '../world/data/test-dialogue.js';
 
-const BOX_HEIGHT = 68;             // ~25% of 270
-const BOX_MARGIN = 4;
-const PORTRAIT_SIZE = 48;
-const PORTRAIT_PAD = 6;
-const TEXT_PAD_LEFT = PORTRAIT_PAD + PORTRAIT_SIZE + 8;
-const TEXT_PAD_TOP = 8;
-const NAME_HEIGHT = 12;
-const LINE_HEIGHT = 11;
+const BOX_HEIGHT = 136;            // ~25% of 540
+const BOX_MARGIN = 8;
+const PORTRAIT_SIZE = 96;
+const PORTRAIT_PAD = 12;
+const TEXT_PAD_LEFT = PORTRAIT_PAD + PORTRAIT_SIZE + 16;
+const TEXT_PAD_TOP = 16;
+const NAME_HEIGHT = 24;
+const LINE_HEIGHT = 22;
 const CHAR_DELAY_MS = 30;
 
 const SPEAKER_COLORS = {
@@ -235,18 +235,18 @@ export const dialogueMode = {
 
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
-        ctx.font = 'bold 9px monospace';
+        ctx.font = 'bold 18px monospace';
         ctx.fillStyle = nameColor;
         ctx.fillText(speakerName, boxX + TEXT_PAD_LEFT, boxY + TEXT_PAD_TOP);
 
         // Body text — wrap to fit the area right of the portrait.
         const textX = boxX + TEXT_PAD_LEFT;
-        const textY = boxY + TEXT_PAD_TOP + NAME_HEIGHT + 2;
-        const maxTextWidth = (boxX + boxW) - textX - 8;
+        const textY = boxY + TEXT_PAD_TOP + NAME_HEIGHT + 4;
+        const maxTextWidth = (boxX + boxW) - textX - 16;
 
         ctx.font = currentIsInternal
-            ? 'italic 9px monospace'
-            : '9px monospace';
+            ? 'italic 18px monospace'
+            : '18px monospace';
 
         // Compute / cache the wrapped layout for the full current line.
         if (!wrappedLines || wrapMaxWidth !== maxTextWidth) {
@@ -266,12 +266,12 @@ export const dialogueMode = {
             ctx.save();
             ctx.globalAlpha = pulse;
             ctx.fillStyle = TEXT_COLOR;
-            const tx = boxX + boxW - 10;
-            const ty = boxY + boxH - 10;
+            const tx = boxX + boxW - 20;
+            const ty = boxY + boxH - 20;
             ctx.beginPath();
             ctx.moveTo(tx, ty);
-            ctx.lineTo(tx + 6, ty);
-            ctx.lineTo(tx + 3, ty + 4);
+            ctx.lineTo(tx + 12, ty);
+            ctx.lineTo(tx + 6, ty + 8);
             ctx.closePath();
             ctx.fill();
             ctx.restore();

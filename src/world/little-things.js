@@ -64,7 +64,7 @@ export function createLittleThing(objectData) {
 
             const t = Date.now();
             const pulse  = 0.5 + 0.3 * Math.sin(t * PULSE_RATE_ALPHA);
-            const radius = 8 + 3 * Math.sin(t * PULSE_RATE_RADIUS);
+            const radius = 16 + 6 * Math.sin(t * PULSE_RATE_RADIUS);
 
             ctx.save();
 
@@ -72,7 +72,7 @@ export function createLittleThing(objectData) {
             ctx.globalAlpha = pulse * 0.3;
             ctx.fillStyle = GOLD;
             ctx.beginPath();
-            ctx.arc(cx, cy, radius + 5, 0, Math.PI * 2);
+            ctx.arc(cx, cy, radius + 10, 0, Math.PI * 2);
             ctx.fill();
 
             // Inner core

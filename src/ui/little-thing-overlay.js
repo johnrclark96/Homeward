@@ -13,8 +13,8 @@ import * as events from '../engine/events.js';
 const TEXT_COLOR = '#F0D070';   // Annie Blonde / warm gold
 const TINT_COLOR = '#1A0F0A';   // slightly warmer than charcoal
 const TINT_ALPHA = 0.72;
-const LINE_HEIGHT = 12;
-const MAX_TEXT_WIDTH = 320;
+const LINE_HEIGHT = 24;
+const MAX_TEXT_WIDTH = 640;
 const CHAR_DELAY_MS = 30;
 
 let text = '';
@@ -118,7 +118,7 @@ export const littleThingOverlay = {
         ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
         ctx.globalAlpha = 1;
 
-        ctx.font = 'italic 9px monospace';
+        ctx.font = 'italic 18px monospace';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
@@ -141,9 +141,9 @@ export const littleThingOverlay = {
             const pulse = 0.4 + 0.4 * Math.abs(Math.sin(pulseTimer / 400));
             ctx.globalAlpha = pulse;
             ctx.fillStyle = TEXT_COLOR;
-            const dotY = startY + visible.length * LINE_HEIGHT + 6;
+            const dotY = startY + visible.length * LINE_HEIGHT + 12;
             ctx.beginPath();
-            ctx.arc(cx, dotY, 1.5, 0, Math.PI * 2);
+            ctx.arc(cx, dotY, 3, 0, Math.PI * 2);
             ctx.fill();
             ctx.globalAlpha = 1;
         }

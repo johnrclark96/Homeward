@@ -1,9 +1,9 @@
 // Core engine constants. Sourced from HOMEWARD-ARCHITECTURE.md §3.
 
 export const TICK_RATE = 1000 / 60;    // 60 Hz logic update (16.67ms per tick)
-export const CANVAS_W = 480;            // native pixels
-export const CANVAS_H = 270;            // native pixels
-export const TILE_SIZE = 32;            // pixels per tile
+export const CANVAS_W = 960;            // native pixels
+export const CANVAS_H = 540;            // native pixels
+export const TILE_SIZE = 64;            // pixels per tile
 export const TILES_X = 15;              // visible tiles horizontal
 export const TILES_Y = Math.ceil(CANVAS_H / TILE_SIZE); // ~8.4
 
@@ -32,8 +32,8 @@ export const NPC_COLOR   = '#888888';
 
 // Sprite footprint per character (style guide §2)
 export const CHARACTER_DIMS = {
-    annie: { width: 32, height: 48, color: ANNIE_COLOR, label: 'A' },
-    john:  { width: 32, height: 48, color: JOHN_COLOR,  label: 'J' },
-    obi:   { width: 32, height: 32, color: OBI_COLOR,   label: 'O' },
-    luna:  { width: 24, height: 32, color: LUNA_COLOR,  label: 'L' },
+    annie: { width: 64, height: 96, color: ANNIE_COLOR, label: 'A' },
+    john:  { width: 64, height: 96, color: JOHN_COLOR,  label: 'J' },
+    obi:   { width: 64, height: 64, color: OBI_COLOR,   label: 'O' },
+    luna:  { width: 48, height: 64, color: LUNA_COLOR,  label: 'L' },
 };

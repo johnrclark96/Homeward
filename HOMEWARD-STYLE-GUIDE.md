@@ -10,31 +10,31 @@
 
 | Property | Value | Rationale |
 |----------|-------|-----------|
-| Native resolution | **480 × 270 px** | The "pixel-perfect" canvas size. All art is created at this scale. |
-| Scale factor | **4×** | Rendered at 1920 × 1080 on modern displays. Every game pixel = 4 screen pixels. |
-| Fallback scale | **3× (1440×810), 2× (960×540)** | For smaller windows or lower-res screens. Engine handles this automatically. |
+| Native resolution | **960 × 540 px** | The "pixel-perfect" canvas size. All art is created at this scale. |
+| Scale factor | **2×** | Rendered at 1920 × 1080 on modern displays. Every game pixel = 2 screen pixels. |
+| Fallback scale | **1× (960×540)** | For smaller windows or lower-res screens. Engine handles this automatically. |
 | Aspect ratio | **16:9** | Standard widescreen. No letterboxing needed on modern displays. |
 
-### Why 480×270?
+### Why 960×540?
 
-It's the largest native resolution that still scales cleanly to 1080p (×4) while keeping individual pixels visible and distinct. At this size with 32×32 tiles, you see approximately 15 × 8.4 tiles on screen — enough to explore comfortably without the world feeling cramped. Characters at 32×48 are clearly expressive, and environmental details read well.
+It scales cleanly to 1080p (×2) while giving sprites ~4× the pixel budget of the original 480×270 layout — critical for the PixelLab AI generation pipeline, which produces meaningfully better detail at 64×64 tiles than at 32×32. At this size with 64×64 tiles, you see approximately 15 × 8.4 tiles on screen — enough to explore comfortably without the world feeling cramped. Characters at 64×96 are clearly expressive, and environmental details read well.
 
 ### Tile Grid
 
 | Property | Value |
 |----------|-------|
-| Tile size | **32 × 32 px** |
+| Tile size | **64 × 64 px** |
 | Tiles visible (horizontal) | ~15 |
 | Tiles visible (vertical) | ~8.4 |
-| Map unit | 1 tile = 32px = one "step" of grid movement |
+| Map unit | 1 tile = 64px = one "step" of grid movement |
 
-### Why 32×32 tiles (not 16×16)?
+### Why 64×64 tiles (not 32×32)?
 
 Three reasons:
 
-1. **PixelLab quality.** AI generation at 32×32 produces significantly better results than 16×16 — more detail, fewer artifacts, better consistency across style-referenced batches.
-2. **Character expression.** At 32×48, characters can have visible facial features, distinct clothing details, and readable emotional states from sprite alone — critical for a game where the characters' feelings ARE the point. At 16×16, faces are 4-5 pixels across and emotions are unreadable without portraits.
-3. **Environmental richness.** 32×32 tiles can show wood grain, individual flowers, brick patterns, and furniture details. The game world needs to feel cozy and lived-in, not abstract.
+1. **PixelLab quality.** AI generation at 64×64 produces significantly better results than 32×32 — more detail, fewer artifacts, better consistency across style-referenced batches. This was the driving reason for the May 2026 resolution doubling.
+2. **Character expression.** At 64×96, characters have clearly visible facial features, distinct clothing details, and readable emotional states from sprite alone — critical for a game where the characters' feelings ARE the point. Animal characters (Obi 64×64, Luna 48×64) finally have enough pixels for legible markings and silhouettes.
+3. **Environmental richness.** 64×64 tiles can show wood grain, individual flowers, brick patterns, and furniture details. The game world needs to feel cozy and lived-in, not abstract.
 
 ---
 
@@ -44,26 +44,26 @@ Three reasons:
 
 | Character | Sprite size | Grid footprint | Notes |
 |-----------|------------|----------------|-------|
-| Annie | 32 × 48 px | 1 × 1.5 tiles | Standard human proportions, slightly chibi. Head is ~40% of body height. |
-| John | 32 × 48 px | 1 × 1.5 tiles | Same proportions as Annie, slightly broader shoulders. |
-| Obi | 32 × 32 px | 1 × 1 tile | Lean, athletic build (NOT stocky beagle shape). White-dominant body, brown head patch, floppy brown ears. |
-| Luna | 24 × 32 px | ~0.75 × 1 tile | Smaller than Obi. Sleek bengal build. Dark tabby stripes over golden-brown coat. Disproportionately tall pointed ears (primary silhouette feature). |
-| NPCs | 32 × 48 px | 1 × 1.5 tiles | Same as player characters for visual consistency. |
+| Annie | 64 × 96 px | 1 × 1.5 tiles | Standard human proportions, slightly chibi. Head is ~40% of body height. |
+| John | 64 × 96 px | 1 × 1.5 tiles | Same proportions as Annie, slightly broader shoulders. |
+| Obi | 64 × 64 px | 1 × 1 tile | Lean, athletic build (NOT stocky beagle shape). White-dominant body, brown head patch, floppy brown ears. |
+| Luna | 48 × 64 px | ~0.75 × 1 tile | Smaller than Obi. Sleek bengal build. Dark tabby stripes over golden-brown coat. Disproportionately tall pointed ears (primary silhouette feature). |
+| NPCs | 64 × 96 px | 1 × 1.5 tiles | Same as player characters for visual consistency. |
 
 ### Proportions (Human Characters)
 
 ```
     ┌────┐
-    │head│  ~14px tall (includes hair)
+    │head│  ~28px tall (includes hair)
     ├────┤
-    │body│  ~20px tall (torso + arms)
+    │body│  ~40px tall (torso + arms)
     ├────┤
-    │legs│  ~14px tall (legs + feet)
+    │legs│  ~28px tall (legs + feet)
     └────┘
-    32px wide
+    64px wide
 ```
 
-- **Head:** Round-ish, ~14px tall including hair. Eyes are 2px dots or small ovals. Mouth is 1-2px. Hair defines the character silhouette — Annie's warm honey-blonde hair and John's darker hair should read clearly even at distance.
+- **Head:** Round-ish, ~28px tall including hair. Eyes are 4px dots or small ovals. Mouth is 2-4px. Hair defines the character silhouette — Annie's warm honey-blonde hair and John's darker hair should read clearly even at distance.
 - **Body:** Simplified torso. Annie's red sweater/top, John's characteristic shirt. Arms at sides or slightly animated.
 - **Legs:** Simple 2-frame walk cycle minimum. 4-frame for smoother animation.
 
@@ -95,34 +95,36 @@ Every character must be identifiable from their silhouette alone at 1× scale. T
 These descriptions are based on photographs of the real people and animals. Use them to inform all art prompts and evaluate all generated output. PixelLab prompts should capture the *essence* of these descriptions at pixel scale, not reproduce photographic detail.
 
 **Annie:**
-- Hair: Long, warm honey-brown / dirty blonde. Falls past shoulders, slight natural wave. NOT bright yellow — the palette color `#F0D070` is a deliberate stylization for pixel readability against warm tilesets, but prompts should say "warm honey-blonde" to avoid anime-yellow output.
+- Hair: Long, warm honey-brown / dirty blonde. **Falls well past the shoulders — near elbow length** in life. Slight natural wave. NOT bright yellow — the palette color `#F0D070` is a deliberate stylization for pixel readability against warm tilesets, but prompts should say "warm honey-brown with subtle golden highlights" to avoid anime-yellow output. **The prototype anchor `0f0f4956` skewed orange-yellow; ongoing generations should aim further toward brown.**
 - Face: Round, warm, genuine smile. Kind eyes.
 - Build: Petite to average. Noticeably smaller than John.
-- Signature look: Red sweater/top is the in-game identifier. In life she wears varied colors, but the red is the game's visual shorthand.
+- Signature look: Red sweater/top is the in-game identifier. In life she wears varied colors (cream sweaters, navy coat, etc.), but the red is the game's visual shorthand.
 
 **John:**
 - Hair: Medium-dark brown, kept short. Noticeably darker than Annie's.
-- Facial hair: Light stubble/short beard. At 32×48, this is 1-2 pixels of darker color on the chin — subtle but adds character. Test with and without.
+- Facial hair: **Short defined beard along the jawline + mustache**, not just chin stubble. At 64×96 this is 4-6 pixels of darker color along the lower face, distinct from the skin tone. (Updated 2026-05-13 from photo reference — earlier "light stubble" description undersold it.)
 - Build: Medium-tall, broad shoulders. Casual posture. Reads as "bigger" than Annie at sprite scale.
-- Signature look: Blue-gray casual shirt (`#5878A0`). Relaxed, unpretentious.
+- Signature look: Blue-gray casual shirt (`#5878A0`). **This is an assigned game-shorthand color, not photographic reality** — real John wears varied colors (gray tees, hoodies, dark casual shirts). Red/blue is the Annie/John visual-identifier split for the player.
 
 **Obi:**
 - **CRITICAL: Never use the word "beagle" in any PixelLab prompt.** Obi is 50% beagle, 25% Australian Shepherd, 25% Australian Cattle Dog and does NOT look like a typical beagle. The AI will hallucinate a stocky tricolor hound.
-- Body: ~75-80% white (`#F0E8E0`) with subtle dark speckles/ticking scattered across the torso — like freckles, not patches. Ticking may not survive at 32×32; white-dominant body is sufficient.
-- Head: Brown/tan patch (`#A07048` / `#D0A878`) covering the crown and both ears. This is his most recognizable feature from the top-down camera angle.
+- Body: ~70-75% white (`#F0E8E0`) with **heavy dark speckling/ticking scattered across the back and flanks — a primary identifying feature, not optional decoration.** Plan to preserve at least 8-12 visible speckle pixels even at 64×64; if a generation produces a clean white body without speckles, it has lost a signature trait and needs a re-roll or state edit. (Updated 2026-05-13 from photo reference.)
+- Head: Brown/tan patch (`#A07048` / `#D0A878`) covering the crown and both ears — a substantial fraction of the head, not just a forehead spot.
 - Ears: Floppy, medium-length, brown. Hang past the jawline.
 - Build: LEAN and athletic with long legs. Looks like a runner. NOT stocky, NOT barrel-chested, NOT low to the ground.
-- Accessories: Dark collar with round tag. Blue bandana (`#4878B0`).
-- Prompt template: `lean athletic white dog with brown patch on head and floppy brown ears, small dark speckles on white body, dark collar with round tag, blue bandana, NOT a beagle NOT stocky`
+- Accessories: Dark collar with round tag. Blue bandana (`#4878B0`) — note: the bandana is a game-signature accessory; real Obi doesn't always wear one in photos. Use it as Obi's overworld identifier so he reads as Obi-and-not-just-a-dog at sprite scale.
+- Prompt template: `lean athletic white dog with large brown patch covering crown and floppy brown ears, heavy dark speckling scattered across white back and flanks, dark collar with round tag, blue bandana, long-legged runner build, NOT a beagle NOT stocky NOT barrel-chested`
 
 **Luna:**
-- **HIGHEST RISK ASSET.** PixelLab is weak below 32×32, and Luna's 24×32 target requires generating at 32×32 and re-canvasing.
-- Coat: Warm brown/tawny base (`#C89848`) with prominent **dark tabby stripes** (`#806030`) — more stripe pattern than classic bengal rosettes. Stripes are bold and nearly black in real life; `#806030` is the stylized palette equivalent.
-- Ears: Disproportionately tall pointed ears — **this is her #1 silhouette feature at pixel scale.** Think satellite dishes. If the ears read, Luna reads.
-- Eyes: Large, golden-green (`#88B848`). Every photo radiates judgment. At pixel scale, 1-2 green pixels for the eyes if there's room.
+- **Reduced risk after the 960×540 resolution doubling (May 2026).** PixelLab is weak below 32×32; Luna's new 48×64 target sits comfortably above that threshold, so generating her natively (rather than at 32×32 and re-canvasing as previously planned) should now work. The "highest risk asset" label is retired — she's now in the normal generation pipeline.
+- Coat: Warm brown/tawny base (`#C89848`) with prominent **dark tabby stripes** — concentric M-pattern on the forehead, vertical stripes on the flanks. More stripe pattern than classic bengal rosettes.
+- **Stripe color: `#806030` is the spec but may read too close to base coat at small sizes.** Real-life stripes are dark *warm brown* (closer to `#503020` or `#604030`), not nearly-black. Test the spec value first; if stripes wash out against the base coat in a generated sprite, drop to `#503020` for higher contrast. (Updated 2026-05-13 from photo reference — earlier "nearly black in real life" claim was wrong; the stripes are dark brown.)
+- Ears: Tall and pointed — **stylized larger than photographic reality for silhouette readability at pixel scale.** Real Luna's ears are upright and pointed but normal-cat-proportioned; the satellite-dish exaggeration is a deliberate sprite design choice so she reads as "cat-and-not-Obi" at 48×64. Do not push so far the result looks bat-like. (Updated 2026-05-13.)
+- Eyes: Large, golden-green (`#88B848`). Every photo radiates judgment. At pixel scale, 1-2 green pixels for the eyes if there's room. Palette value matches real life almost exactly.
+- Nose: Pink. At portrait scale, a 1-pixel pink dot.
 - Body: Sleek, muscular but lean. Classic bengal. Noticeably smaller than Obi.
 - Tail: Long.
-- Prompt template: `small sleek bengal cat with warm brown tabby-striped coat, very tall pointed ears, golden-green eyes, long tail, dark stripes on golden-brown fur`
+- Prompt template: `small sleek bengal-tabby cat with warm brown coat and bold dark brown stripes, tall pointed ears, golden-green eyes, pink nose, long tail, lean muscular build, body fills frame`
 
 ---
 
@@ -227,7 +229,7 @@ Objects taller than 1 tile (trees, buildings, tall furniture) have their base on
 
 | Context | Font | Size (native) | Notes |
 |---------|------|---------------|-------|
-| Dialogue text | Pixel font (e.g., Press Start 2P, m5x7, or custom) | 8-10px | Must be readable at 4× scale. |
+| Dialogue text | Pixel font (e.g., Press Start 2P, m5x7, or custom) | 8-10px | Must be readable at 2× scale. |
 | UI labels | Fredoka One (from ACD) or similar rounded sans | 8px | Menu items, button labels, stat names |
 | Numbers/stats | Pixel font | 8px | HP, coins, damage numbers |
 | Title screen | Custom / Fredoka One | 16-24px | "HOMEWARD" — warm, inviting |
@@ -247,14 +249,14 @@ Objects taller than 1 tile (trees, buildings, tall furniture) have their base on
 
 - Box fills bottom ~25% of screen
 - Semi-transparent warm background (`#3A2E28` at 85% opacity)
-- Portrait is 64×64 (or 48×48) — larger, more detailed than the overworld sprite
+- Portrait is 128×128 (or 96×96) — larger, more detailed than the overworld sprite
 - Character name in accent color matching the character
 - Text reveals character-by-character (typewriter effect) with SFX
 - ▼ indicator pulses when waiting for input
 
 ### Dialogue Portraits
 
-Separate from overworld sprites. Portraits are **64×64** (rendered at 256×256 on screen at 4× scale). They show:
+Separate from overworld sprites. Portraits are **128×128** (rendered at 256×256 on screen at 2× scale). They show:
 - Clear facial expression
 - Upper body (head + shoulders)
 - Character-identifying details (Annie's hair, John's shirt, Obi's bandana, Luna's eyes)
@@ -347,7 +349,7 @@ Before finalizing any visual asset, apply this test:
 1. Does it make you feel warm? (If it feels cold, clinical, or sterile — adjust the palette.)
 2. Could you imagine it on a greeting card or a children's book page? (Good.)
 3. Does it feel threatening or hostile? (Bad. Even enemies should look mischievous, not scary.)
-4. Is it readable at 1× scale? (If you can't tell what it is at 32×48 actual pixels, simplify.)
+4. Is it readable at 1× scale? (If you can't tell what it is at 64×96 actual pixels, simplify.)
 
 ---
 
@@ -386,12 +388,12 @@ PixelLab's MCP server (`create_character`, `animate_character`, `create_tileset`
 
 The research revealed that the anchor should be the **portrait**, not the overworld sprite. Detail can be downsampled (portrait → sprite) but not invented (sprite → portrait). This changes the order:
 
-1. **Day 1: Generate Annie's 64×64 portrait (neutral expression).** This is the true style anchor for the entire game. Iterate until the palette, proportions, warmth, and personality are exactly right. Use forced-palette parameter to lock to our defined color palette.
-2. **Day 1-2: Derive Annie's 32×48 overworld sprite** using the portrait as style reference. The "Create S-M image (style)" tool takes the portrait as reference and generates the smaller sprite in matching style.
+1. **Day 1: Generate Annie's 128×128 portrait (neutral expression).** This is the true style anchor for the entire game. Iterate until the palette, proportions, warmth, and personality are exactly right. Use forced-palette parameter to lock to our defined color palette.
+2. **Day 1-2: Derive Annie's 64×96 overworld sprite** using the portrait as style reference. The "Create S-M image (style)" tool takes the portrait as reference and generates the smaller sprite in matching style.
 3. **Day 2: Generate Annie's 8-directional rotation** using "Create 8-directional sprite (Pro) → Rotate character" — feed it the front-facing overworld sprite, get all 8 directions back in a 3×3 grid.
 4. **Day 2-3: Generate Annie's walk cycle** using "Animate with skeleton" tool (NOT text-based animation). Set `fixed head → always` so the face copies from the reference for consistency. Skeleton animation is PixelLab's own recommendation for character walk cycles.
 5. **Day 3: Generate remaining Annie animations** (idle, battle poses, interact) using the same skeleton + reference pipeline.
-6. **Day 3: RISK TEST — Generate Luna at 32×32.** Luna is 24×32 in our spec, but PixelLab is documented as weak below 32×32. Generate her at 32×32 with the body filling the frame, then re-canvas to 24×32 in Aseprite. If the result is bad, pivot Luna to Retro Diffusion or hand-drawn.
+6. **Day 3: Generate Luna at 48×64.** (Previously a risk asset at 24×32; the May 2026 resolution doubling moved her above PixelLab's 32×32 quality threshold, so she can now be generated natively. No re-canvasing required.)
 7. **Day 4-7: Generate John, Obi, and Luna** using Annie's portrait as the style reference anchor. Same pipeline per character.
 8. **Decision gate (end of Week 1):** If all four characters + one test tileset look production-grade after Aseprite cleanup, proceed to bulk generation. If not, evaluate alternatives before committing further.
 
@@ -425,14 +427,14 @@ big warm smile, red sweater, head and shoulders portrait,
 cozy pixel art RPG style, facing south, transparent background
 ```
 
-**Annie (overworld, 32×48):**
+**Annie (overworld, 64×96):**
 ```
 chibi girl with long warm honey-blonde wavy hair, red sweater,
 top-down RPG sprite, chibi proportions, [direction],
 transparent background, style reference: [Annie portrait anchor]
 ```
 
-**John (overworld, 32×48):**
+**John (overworld, 64×96):**
 ```
 chibi young man with short dark brown hair, light stubble,
 broad shoulders, blue-gray casual shirt, top-down RPG sprite,
@@ -440,7 +442,7 @@ chibi proportions, [direction], transparent background,
 style reference: [Annie portrait anchor]
 ```
 
-**Obi (overworld, 32×32) — NEVER say "beagle":**
+**Obi (overworld, 64×64) — NEVER say "beagle":**
 ```
 lean athletic white dog with brown patch on head and floppy brown ears,
 small dark speckles on white body, dark collar with round tag,
@@ -449,7 +451,7 @@ style reference: [Annie portrait anchor]
 ```
 Negative (add to universal): `beagle, hound, stocky, barrel-chested, tricolor, black patches`
 
-**Luna (generated at 32×32, re-canvased to 24×32):**
+**Luna (overworld, 48×64):**
 ```
 small sleek bengal cat with warm brown tabby-striped coat,
 very tall pointed ears, golden-green eyes, long tail,
@@ -460,7 +462,7 @@ style reference: [Annie portrait anchor]
 
 ### Tileset Prompt Template
 ```
-[environment description] tileset, 32x32 tiles, top-down RPG,
+[environment description] tileset, 64x64 tiles, top-down RPG,
 warm earthy colors, cozy aesthetic, seamless tiling,
 inner tile: [e.g., grass], outer tile: [e.g., dirt path]
 ```
@@ -470,7 +472,7 @@ Use the Wang tileset export → Sprite Fusion → JSON/TMX export pipeline for a
 
 | Limitation | Impact | Mitigation |
 |-----------|--------|------------|
-| Weak below 32×32 | Luna (24×32) may look rough | Generate at 32×32, re-canvas in Aseprite |
+| Weak below 32×32 | Historical risk: Luna's old 24×32 target. After the May 2026 resolution doubling, all targets (Luna 48×64, Obi 64×64) sit above the threshold — no longer an active mitigation. |
 | Style drift after ~20 gens | Later assets may not match early ones | Always re-anchor to original portrait; forced palette |
 | ~10-20% of frames need manual repair | Walk cycles may have head-bobbing, foot-slipping, color flicker | Aseprite onion skinning + manual pixel editing |
 | Rotation struggles with accessories | Obi's bandana, hats, held items may not rotate cleanly | Regenerate problem directions; inpainting fixes |
@@ -551,7 +553,7 @@ maps/ch1-rest-stop.json
 - [ ] Passes the silhouette test (identifiable as solid black shape)
 - [ ] Uses only palette colors — verified via Aseprite indexed-color snap
 - [ ] No pure black (`#000000`) or pure white (`#FFFFFF`)
-- [ ] Readable at 1× native resolution (32×48 for characters, 32×32 for tiles)
+- [ ] Readable at 1× native resolution (64×96 for characters, 64×64 for tiles)
 - [ ] Consistent with the master portrait anchor (compare side-by-side every 20 gens)
 - [ ] Outlines use contextual color, not uniform black
 - [ ] Transparent background (for sprites) or seamless tiling (for tiles)

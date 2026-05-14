@@ -14,8 +14,8 @@
 | Module system | Native ES `import`/`export` — no bundler, no build step |
 | Hosting | GitHub Pages (static HTTPS) |
 | Dev server | `npx serve .` or VS Code Live Server for local testing |
-| Target framerate | 60 FPS render, 30 FPS logic tick |
-| Resolution | 480×270 native canvas, CSS-scaled to fill viewport at integer multiples (4× → 1920×1080) |
+| Target framerate | 60 FPS render, 60 FPS logic tick |
+| Resolution | 960×540 native canvas, CSS-scaled to fill viewport at integer multiples (2× → 1920×1080) |
 | Input | Keyboard (primary), mouse (menus), touch (future) |
 | Persistence | localStorage |
 | Audio | Web Audio API (procedural, evolved from ACD) |
@@ -160,17 +160,17 @@ homeward/
 ### Constants
 
 ```javascript
-export const TICK_RATE = 1000 / 30;    // 30 updates/second (33.33ms per tick)
-export const CANVAS_W = 480;            // native pixels
-export const CANVAS_H = 270;            // native pixels
-export const TILE_SIZE = 32;            // pixels per tile
+export const TICK_RATE = 1000 / 60;    // 60 updates/second (16.67ms per tick)
+export const CANVAS_W = 960;            // native pixels
+export const CANVAS_H = 540;            // native pixels
+export const TILE_SIZE = 64;            // pixels per tile
 export const TILES_X = 15;              // visible tiles horizontal
 export const TILES_Y = Math.ceil(CANVAS_H / TILE_SIZE); // ~8.4
 ```
 
-### Why 30 Hz Update, 60 Hz Render?
+### Why 60 Hz Update?
 
-Game logic (movement, collision, AI, timers) runs at a fixed 30 Hz. This is plenty for a tile-based RPG where movement is discrete grid steps — there's no physics or fast action that needs 60 Hz precision. Rendering runs at the display's refresh rate (typically 60 Hz) with interpolation for smooth movement tweens between logical positions. This halves the logic cost and makes the game run well on weaker hardware.
+Game logic and rendering both run at 60 Hz (1:1 with the display refresh rate). The original design used a 30 Hz logic tick with 60 Hz render and interpolation, but this produced persistent jitter — 30/60 is the worst case for interpolation artifacts because every other render frame has zero new logic data. At 60 Hz, each render frame corresponds to exactly one logic tick, eliminating the entire class of timing bugs. All time-based systems (tweens, timers, dialogue) use `dt` accumulation and are tick-rate-independent, so the change required no code modifications beyond the constant itself.
 
 ### game-loop.js Exports
 
@@ -513,7 +513,7 @@ export const camera = {
 
     update(dt) {
         // Smooth follow with lerp
-        const speed = 0.1;
+        const speed = 0.25;
         this.x += (this.targetX - this.x) * speed;
         this.y += (this.targetY - this.y) * speed;
 
@@ -709,7 +709,7 @@ The overworld checks: does the active character have the required ability? If ye
 
 ### Grid-Based Movement with Smooth Tweening
 
-Characters move tile-to-tile on the grid, but the visual position smoothly interpolates between grid cells. Characters taller than one tile (humans at 32×48) need a Y rendering offset so their feet align with the tile, not their head.
+Characters move tile-to-tile on the grid, but the visual position smoothly interpolates between grid cells. Characters taller than one tile (humans at 64×96) need a Y rendering offset so their feet align with the tile, not their head.
 
 ```javascript
 // Directional vectors for 8 directions

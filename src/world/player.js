@@ -225,28 +225,28 @@ export function createPlayer(characterId, gridX, gridY) {
             ctx.fillStyle = '#FFF8F0';
             const cx = rx + w / 2;
             const cy = ry + h / 2;
-            const t = 4;
+            const t = 8;
             ctx.beginPath();
             switch (this.facing) {
                 case 'north':
-                    ctx.moveTo(cx, ry + 2);
-                    ctx.lineTo(cx - t, ry + 2 + t);
-                    ctx.lineTo(cx + t, ry + 2 + t);
+                    ctx.moveTo(cx, ry + 4);
+                    ctx.lineTo(cx - t, ry + 4 + t);
+                    ctx.lineTo(cx + t, ry + 4 + t);
                     break;
                 case 'south':
-                    ctx.moveTo(cx, ry + h - 2);
-                    ctx.lineTo(cx - t, ry + h - 2 - t);
-                    ctx.lineTo(cx + t, ry + h - 2 - t);
+                    ctx.moveTo(cx, ry + h - 4);
+                    ctx.lineTo(cx - t, ry + h - 4 - t);
+                    ctx.lineTo(cx + t, ry + h - 4 - t);
                     break;
                 case 'east':
-                    ctx.moveTo(rx + w - 2, cy);
-                    ctx.lineTo(rx + w - 2 - t, cy - t);
-                    ctx.lineTo(rx + w - 2 - t, cy + t);
+                    ctx.moveTo(rx + w - 4, cy);
+                    ctx.lineTo(rx + w - 4 - t, cy - t);
+                    ctx.lineTo(rx + w - 4 - t, cy + t);
                     break;
                 case 'west':
-                    ctx.moveTo(rx + 2, cy);
-                    ctx.lineTo(rx + 2 + t, cy - t);
-                    ctx.lineTo(rx + 2 + t, cy + t);
+                    ctx.moveTo(rx + 4, cy);
+                    ctx.lineTo(rx + 4 + t, cy - t);
+                    ctx.lineTo(rx + 4 + t, cy + t);
                     break;
             }
             ctx.closePath();
@@ -254,7 +254,7 @@ export function createPlayer(characterId, gridX, gridY) {
 
             // Centered identifying letter
             ctx.fillStyle = '#FFF8F0';
-            ctx.font = 'bold 10px monospace';
+            ctx.font = 'bold 20px monospace';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(this.label, cx, cy);
