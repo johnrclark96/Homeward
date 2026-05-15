@@ -63,14 +63,14 @@ homeward/
 │   └── data/          # chapter data bundles, global JSON data files            (not yet)
 ├── assets/
 │   ├── palette/homeward.gpl            (exists — canonical Homeward palette)
-│   ├── sprites/                        (not yet — first PixelLab outputs land here)
+│   ├── sprites/characters/annie/       (exists — Annie's 8-dir overworld sprite + walk/idle)
 │   ├── tiles/                          (not yet)
-│   ├── portraits/                      (not yet)
+│   ├── portraits/annie/                (exists — Annie master portrait + raw candidates)
 │   ├── ui/                             (not yet)
 │   └── audio/                          (not yet)
 ├── test sprites/                       (exists — early Aseprite experiments)
 ├── old/                                (exists — archived prior versions of GDD/Style Guide)
-└── tools/                              (not yet)
+└── tools/                              (exists — PixelLab REST API generation scripts)
 ```
 
 ## Reference Documents
@@ -80,7 +80,7 @@ Four docs in this directory define the full project. Read them when you need spe
 - **HOMEWARD-GDD.md** — Game design. Story, characters, abilities, combat, chapter structure, the Little Things collectible system, mini-activities, progression. Read for *what* the game does.
 - **HOMEWARD-STYLE-GUIDE.md** — Visual bible. Resolution, palette (hex values), character dimensions, sprite sheet specs, UI layout, animation frame rates, art pipeline. Read for *what it looks like*.
 - **HOMEWARD-ARCHITECTURE.md** — Technical architecture. Game loop, mode machine, state schema, rendering pipeline, entity system, movement/collision, dialogue data format, battle state machine, asset loading, all data schemas. Read for *how the code works*. This is the primary implementation reference.
-- **HOMEWARD-PIXELLAB-WORKFLOW.md** — Operational manual for the PixelLab MCP. Tool catalog, parameter defaults, recipes for common iteration loops, asset ingestion paths, anti-patterns, cost guardrails. Read *before generating any art from this session*. Visual decisions still live in the Style Guide; this doc covers driving the MCP.
+- **HOMEWARD-PIXELLAB-WORKFLOW.md** — Operational manual for generating art with PixelLab. Homeward uses the **PixelLab REST API v2** (not the MCP tools — the MCP has no plain image-generation endpoint). Covers the verified endpoint shapes, the mandatory three-step character pipeline (portrait → south sprite → 8-direction rotation → animations), anti-patterns, and asset ingestion. Read *before generating any art* — §0 and §7 list the mistakes that already cost credits. Visual decisions still live in the Style Guide; this doc covers driving the API.
 
 ## Coding Conventions
 
@@ -96,14 +96,18 @@ Four docs in this directory define the full project. Read them when you need spe
 
 **Milestone 0 vertical slice is running with placeholder graphics.** The engine boots, the mode machine drives the overworld, the party walks the tile map, dialogue plays, Little Things glow and surface their overlay, area transitions work. Characters are drawn as colored rectangles (see `CHARACTER_DIMS` in `src/constants.js`) waiting for real sprites.
 
-**Current focus: visual asset pipeline.** PixelLab MCP is installed and operational (see Tooling below). The Style Guide and HOMEWARD-PIXELLAB-WORKFLOW.md define the pipeline. The native resolution has been doubled (960×540, 64-px tiles) to give PixelLab more pixel budget per sprite. The four player characters, Wicker Park apartment + street tilesets, and NPC sprites are the immediate generation queue.
+**Current focus: visual asset pipeline.** Art is generated through the PixelLab REST API v2 (see Tooling below and HOMEWARD-PIXELLAB-WORKFLOW.md). The native resolution was doubled (960×540, 64-px tiles) to give PixelLab more pixel budget per sprite.
+
+**Annie's overworld sprite is complete** — master 128×128 portrait (style anchor), 8-direction static rotation, and walk + idle animations (8 directions each), all generated and committed under `assets/`. PixelLab `character_id` `ad0fdc16`. The work surfaced two costly mistakes (a portrait fed directly into 8-direction generation produced a two-faced character; animations submitted one direction per call fragmented into junk entries) — both are now documented as anti-patterns in the workflow doc so John/Obi/Luna avoid them. Annie's assets still need an Aseprite cleanup pass (canvas-anchor normalization, palette snap) before the engine loads them.
+
+**Next art:** John, Obi, and Luna via the same three-step pipeline, anchored to Annie's portrait; then Wicker Park tilesets and NPC sprites.
 
 **Next code milestones** (after baseline art exists): battle mode (`src/battle/`), save system (`src/engine/save.js`), assets/audio loaders, time-of-day + warmth state, and full character stats data in `src/characters/`.
 
 ## Tooling
 
-- **PixelLab MCP server** is installed at user scope (`claude mcp add -s user -t http pixellab https://api.pixellab.ai/mcp -H "Authorization: Bearer <token>"`). API token lives only in user-level Claude config — never commit it. Verify with `claude mcp list`; smoke-test with `mcp__pixellab__list_characters`. Account state and one existing Annie prototype character are documented in HOMEWARD-PIXELLAB-WORKFLOW.md §4d.
-- **Aseprite** is the cleanup-and-export tool. Master `.aseprite` files live alongside their `raw/` and `exports/` siblings under `assets/sprites/<category>/<name>/` per the workflow doc §6.
+- **PixelLab art generation** uses the **REST API v2** (`https://api.pixellab.ai/v2`), driven by Node/Python scripts in `tools/`. The MCP server is also installed at user scope but is not the production path — it has no standalone image-generation endpoint (needed for portraits). The API token is shared with the MCP config; it lives in `~/.claude.json` and must **never** be committed — scripts read it from the `PIXELLAB_TOKEN` environment variable. Full workflow, verified endpoint shapes, and anti-patterns: HOMEWARD-PIXELLAB-WORKFLOW.md. Per-character generation records: the `GENERATION-LOG.md` files under `assets/`.
+- **Aseprite** is the cleanup-and-export tool. Master `.aseprite` files live alongside their `raw/` and `exports/` siblings under `assets/sprites/<category>/<name>/` per the workflow doc §8.
 - **Static dev server** is whatever serves the repo (`npx serve .` or VS Code Live Server). No build, no bundler.
 
 ## Color Palette (Key Values)

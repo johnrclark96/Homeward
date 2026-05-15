@@ -1,486 +1,483 @@
-# Homeward — PixelLab MCP Workflow
+# Homeward — PixelLab Workflow
 
-> The operational manual for using PixelLab from Claude Code to generate, iterate, and validate game art. Style decisions live in **HOMEWARD-STYLE-GUIDE.md** §2, §3, §8 — this doc is about *driving the MCP* once those rules are set. Read both before touching art.
-
----
-
-## 0. Quick Status Check
-
-Before doing any PixelLab work in a session, run these checks. They take 5 seconds and prevent a lot of wasted context.
-
-```sh
-# Is the server registered?
-claude mcp list
-
-# Are the tools loaded in this session? Look for any tool starting with mcp__pixellab__.
-# If the deferred-tools list shows them, load schemas with:
-#   ToolSearch({ query: "pixellab", max_results: 30 })
-```
-
-If `claude mcp list` shows `pixellab — Connected ✓`, you're set. If it shows `Needs authentication` or is missing entirely, see §1.
+> The operational manual for generating game art with PixelLab. Visual
+> decisions (palette, sizes, character looks, prompt content) live in
+> **HOMEWARD-STYLE-GUIDE.md** §2/§3/§8. This doc is *how to drive PixelLab*
+> without repeating mistakes that have already cost real credits.
+>
+> Last verified end-to-end: 2026-05-15 (Annie's full overworld pipeline).
 
 ---
 
-## 1. One-Time Setup
+## 0. TL;DR — the rules that matter most
 
-PixelLab MCP is a remote HTTP server. You authenticate with a bearer token from your PixelLab account.
+If you read nothing else, read this. Each line is a mistake someone already made.
 
-### 1a. Get your token
-
-1. Sign in at https://www.pixellab.ai/mcp
-2. Copy your API token from the MCP install page.
-
-### 1b. Register the server
-
-Run **one** of these. `user` scope is recommended — the token then works across all projects on this machine and the secret is stored once.
-
-```sh
-# User scope — recommended (one token, all projects)
-claude mcp add -s user -t http pixellab https://api.pixellab.ai/mcp -H "Authorization: Bearer YOUR_PIXELLAB_TOKEN"
-
-# Or project-local scope (only this repo, secret stored in user-level config — does NOT commit to git)
-claude mcp add -t http pixellab https://api.pixellab.ai/mcp -H "Authorization: Bearer YOUR_PIXELLAB_TOKEN"
-```
-
-> **Do not commit the token.** Neither scope writes the secret to a checked-in file (project scope uses `.claude.json` in the user dir, not `.mcp.json`). If you ever paste it into a doc or commit, rotate it.
-
-### 1c. Restart Claude Code
-
-Tool schemas are loaded on session start. Quit Claude Code and reopen this directory. In the new session the deferred-tools list will include `mcp__pixellab__*` entries. Load them with `ToolSearch({ query: "pixellab", max_results: 30 })` in one call (don't `select:` one tool at a time).
-
-### 1d. Verify end-to-end
-
-Run `mcp__pixellab__list_characters` with `limit: 1`. A successful empty-list response (or a list of past characters) confirms the token is good and quota is available. If you get a 401, the token is wrong or expired.
+1. **Use the REST API v2** (`https://api.pixellab.ai/v2`), not the MCP tools. The
+   MCP has no standalone image-generation endpoint — you need it for portraits.
+2. **The character pipeline is THREE separate steps, in order:** portrait →
+   full-body south sprite → 8-direction rotation. Never collapse them.
+3. **Never feed a portrait into 8-direction generation.** A head-and-shoulders
+   portrait has no body or back-of-head data; the model invents a second
+   front-facing face for the `north` slot. Use a *full-body south sprite* as the
+   rotation input with `method: "rotate_character"`.
+4. **Animations: ONE request per animation type, with every direction in the
+   `directions` list.** One request → one clean 8-direction animation. Submitting
+   one direction per call fragments one animation into eight, and there is no API
+   to merge or delete the fragments.
+5. **Be patient when polling.** An 8-direction animation takes 5–15 minutes;
+   directions populate one at a time. "Not all 8 yet" is normal, not a failure.
+   Never resubmit while jobs are still `processing`.
+6. **Submit `walking`, let it fully finish, THEN `breathing-idle`.** Each
+   8-direction request consumes 8 concurrent job slots; the account cap is ~14.
+   Overlapping two of them triggers 429s.
+7. **Backblaze download URLs take no auth.** The Bearer token returns 401 on
+   them. Python's default urllib User-Agent returns 403 — send a normal UA.
+8. **Never commit the API token.** It lives in `~/.claude.json`; pass it via an
+   environment variable to scripts.
 
 ---
 
-## 2. How PixelLab Actually Works
+## 1. Two ways in: REST API v2 vs the MCP
 
-This is the mental model. Every recipe in §5 assumes you understand this.
+PixelLab is reachable two ways. **Homeward uses the REST API v2.**
 
-### 2a. Credit math (verified against live schemas)
+| | REST API v2 (`api.pixellab.ai/v2`) | MCP server (`mcp__pixellab__*` tools) |
+|---|---|---|
+| Plain image generation (portraits) | ✅ `/generate-image-v2` | ❌ none — only character/tileset/object tools |
+| 8-direction characters | ✅ `/create-character-pro` | ✅ `create_character` |
+| Animations | ✅ `/characters/animations` | ✅ `animate_character` |
+| Single-image rotation | ✅ `/rotate` | — |
+| Interface | HTTP from a Node/Python script | Tool calls in the session |
 
-PixelLab does NOT have a flat "basic vs pro tier" applied to every tool. Cost varies per *call and parameters*. The real numbers from the live MCP schemas:
+**Why REST:** the portrait is Step 1 of every character and only the REST API
+can generate it. Using one interface for the whole pipeline beats mixing MCP
+calls and HTTP. Every recipe in this doc is REST. The MCP remains installed
+(see CLAUDE.md "Tooling") and is fine for quick experiments, but it is not the
+documented Homeward path.
 
-| Operation | Generations |
-|-----------|-------------|
-| `create_character` with `mode: "standard"` | **1** (regardless of 4 or 8 directions) |
-| `create_character` with `mode: "pro"` | **20–40** (depending on size; smaller = cheaper; always 8 directions; ignores outline/shading/detail/proportions/ai_freedom) |
-| `create_character_state` | ~1 (standard) or pro cost (matches source mode) |
-| `animate_character` with `template_animation_id` | **1 per direction** (so 4 or 8) |
-| `animate_character` with `action_description` (custom, no template) | **20–40 per direction** — schema explicitly requires user-confirmed `confirm_cost: true` |
-| `animate_object` | ~30–60 seconds wallclock per direction; cost similar to template animations |
-| `create_topdown_tileset`, `create_sidescroller_tileset` | Single job, ~100 seconds wallclock |
-| `create_isometric_tile`, `create_map_object`, `create_tiles_pro` | Single job each |
-
-**Implication for Homeward:** Most of our work is **standard mode** (1 generation per character). Pro mode is reserved for *production-final* characters where we feed Annie's portrait as `reference_image_base64` to lock the style. Iteration and validation tests should default to standard mode.
-
-- **Tier 2 ("Pixel Artisan") allowance:** ~5,000 images/month worth of credits.
-- **Revised Homeward budget:** dramatically below the earlier estimate. Most chapters of NPCs and props can be generated in standard mode (1 gen each) and only the four mains + a handful of hero enemies need pro mode treatment.
-
-> Always pass `confirm_cost: true` on `animate_character` ONLY after the user has explicitly approved the cost. Schema mandates this — never set it on first call.
-
-### 2b. Non-blocking jobs
-
-`create_character`, `animate_character`, `create_topdown_tileset`, etc. **return immediately with a job ID.** The actual generation runs in the background. Approximate wallclock:
-
-| Tool | Time |
-|------|------|
-| `create_character` 4-dir standard | 2–3 min |
-| `create_character` 8-dir standard or pro | 3–5 min |
-| `create_topdown_tileset`, `create_sidescroller_tileset` | ~100s |
-| `create_isometric_tile`, `create_tiles_pro` | 10–30s |
-| `create_map_object` | 30–90s |
-| `animate_character` (per direction, template) | ~60s |
-
-The pattern is always:
-
-```
-1. create_*           → returns { id, status: "processing" }
-2. wait (do other work, or sleep 60-120s)
-3. get_* (by id)      → returns status: "ready" + URLs, or still "processing"
-4. download PNGs       → assets/...
-```
-
-Don't poll in a tight loop. Either do other work in between, or wait at least ~90 seconds before the first `get_*` call.
-
-### 2b-bis. Canvas auto-expansion
-
-`create_character` adds ~40% padding around the requested `size` to make room for animation frames. A `size: 96` request produces a **~135×135 canvas** with the character centered at ~96px tall. This matters for ingestion — the raw PNG is NOT 64×96; it's a larger canvas with transparency. Aseprite cleanup includes cropping to our target dimensions (64×96 for humans, 64×64 for Obi, 48×64 for Luna).
-
-### 2b-ter. Inline previews
-
-`get_character`, `get_object`, `get_map_object`, etc. with `include_preview: true` (the default) return an actual preview image inline in the response. You can visually evaluate output without downloading first — useful for fast iteration. Download only when you decide to keep an asset.
-
-### 2c. Downloads are unauthenticated
-
-Once you have a download URL, you can fetch the PNG/ZIP with plain `Invoke-WebRequest` or `curl`. No bearer header needed — the UUID in the URL is the access key. This means future Claude sessions can pull asset files directly via Bash, no MCP call required.
-
-**Two gotchas for ZIP downloads:**
-
-1. **Use `curl --fail`** (or check that the file is >1KB). If you request a ZIP while animations are still rendering, the endpoint returns HTTP 423 with a JSON body. Plain `curl` will save the JSON to your `.zip` filename and you won't notice the corruption.
-2. **Rotation PNGs always work.** If you only need individual direction PNGs (not the bundled ZIP), download them directly from the `Rotation Images` URLs returned by `get_character` — those don't have the pending-animation gating.
-
-### 2d. Cloud storage is ephemeral
-
-`create_map_object` artifacts are auto-deleted after 8 hours. Characters and tilesets persist longer but are not a backup. **Save every PNG to `assets/` locally the moment a job reports ready.** PixelLab's cloud is not our archive.
+Full REST docs: `https://api.pixellab.ai/v2/llms.txt`. **The published docs are
+incomplete and occasionally wrong about response shapes** — §4 below records the
+shapes actually observed in production.
 
 ---
 
-## 3. Tool Catalog
+## 2. Authentication
 
-Naming in Claude Code: `mcp__pixellab__<tool>`. Costs are *approximate Pro-call estimates* — verify with `confirm_cost: true` on first use of each tool in a session.
-
-### 3a. Characters & rotations
-
-| Tool | Use when | Cost class |
-|------|----------|------------|
-| `create_character` | New character from text + reference. 4 or 8 directions in one shot. | Pro |
-| `create_character_state` | New outfit/expression/pose variant of an existing character, preserving identity. | Pro |
-| `animate_character` | Add walk/idle/attack cycle to an existing character. Skeleton animation. | Pro |
-| `get_character` | Poll job status; get rotation URLs, animation list, ZIP download. | Free |
-| `list_characters` | Browse what's already in your account. | Free |
-| `delete_character` | Clean up failed experiments. Requires `confirm: true`. | Free |
-
-### 3b. Top-down tilesets (Wang, 16-tile)
-
-| Tool | Use when | Cost class |
-|------|----------|------------|
-| `create_topdown_tileset` | Two-terrain seamless transition (e.g., grass↔dirt). Pass `lower_base_tile_id` / `upper_base_tile_id` to chain with a previous tileset for cross-area consistency. | Pro |
-| `get_topdown_tileset` | Poll, retrieve PNG + base tile IDs. | Free |
-| `list_topdown_tilesets` | Browse. | Free |
-| `delete_topdown_tileset` | Clean up. | Free |
-
-### 3c. Sidescroller tilesets
-
-| Tool | Use when | Cost class |
-|------|----------|------------|
-| `create_sidescroller_tileset` | We **don't ship sidescroller content** — Homeward is top-down. Skip unless we ever do a sidescroller flashback. | Pro |
-| `get_sidescroller_tileset` | (n/a for now) | Free |
-
-### 3d. Isometric tiles
-
-| Tool | Use when | Cost class |
-|------|----------|------------|
-| `create_isometric_tile`, etc. | **n/a for Homeward** — we are pure top-down. Do not use without a design change. | Pro |
-
-### 3e. Map objects & general objects
-
-| Tool | Use when | Cost class |
-|------|----------|------------|
-| `create_map_object` | Single decoration with transparent background (mailbox, sign, bench, lamppost, bush). Auto-deleted in 8h → download immediately. | Basic-to-Pro |
-| `create_object` | Multi-frame / multi-directional prop (animated fountain, rotating fan, interactable that has open/closed states). | Pro |
-| `animate_object` | Add animation cycle to existing object. | Pro |
-| `create_object_state` | Variant preserving style (e.g., closed mailbox → open mailbox with flag up). | Pro |
-| `select_object_frames` | Promote chosen frames from a multi-frame generation into separate canonical objects. | Free |
-| `get_*` / `list_*` / `delete_*` / `dismiss_review` | Standard management. | Free |
-
-### 3f. Pro tiles (advanced)
-
-| Tool | Use when | Cost class |
-|------|----------|------------|
-| `create_tiles_pro` | Advanced tile generation with style images and view-angle control. Probably overkill for v1; revisit if standard `create_topdown_tileset` outputs aren't matching style. | Pro |
+- The API token is the same bearer token the PixelLab MCP server uses. It is
+  stored in `~/.claude.json` under `mcpServers.pixellab.headers.Authorization`
+  (the value after `Bearer `).
+- **Never echo, log, commit, or paste the token.** Read it once, pass it to
+  scripts via an environment variable:
+  ```sh
+  PIXELLAB_TOKEN=<token> node tools/<script>.js
+  ```
+  Every Homeward tool script reads `process.env.PIXELLAB_TOKEN` / `os.environ`.
+- Every API request needs the header `Authorization: Bearer <token>` —
+  **except** Backblaze CDN download URLs (see §4h).
+- If a request 401s, the token is stale; the user must refresh it.
 
 ---
 
-## 4. Homeward Parameter Defaults
+## 3. The mental model
 
-Use these defaults on every call unless you have a specific reason to deviate. They encode our style decisions so we don't have to re-argue them per generation.
+### 3a. Async jobs
 
-### 4a. Universal prompt suffix and negative
+Generation endpoints (`/generate-image-v2`, `/create-character-pro`,
+`/characters/animations`, `/rotate`) **return immediately with a job ID** and
+run in the background. The pattern is always:
 
 ```
-suffix:   warm cozy pixel art, soft outlines, no pure black, earthy tones
-negative: pure black, pure white, harsh outlines, neon colors, anime style, gradient shading
+submit  → returns a job id (or job ids)
+poll    GET /background-jobs/{id} until status == "completed" | "failed"
+fetch   GET /characters/{id}  (or read the job's last_response) for image URLs
+download the PNGs to assets/...
 ```
 
-### 4b. Character calls — `create_character`
+Approximate wallclock:
 
-| Parameter | Default for Homeward | Why |
-|-----------|----------------------|-----|
-| `mode` | `standard` for iteration & NPCs; `pro` only for final production mains with `reference_image_base64` set to Annie's portrait | Standard = 1 generation. Pro = 20–40. See §2a. |
-| `body_type` | `humanoid` (Annie/John/NPCs), `quadruped` (Obi → `template: "dog"`, Luna → `template: "cat"`) | |
-| `n_directions` | `4` for prototyping, `8` for production mains and NPCs you'll actually animate | 4-dir is faster + same 1-gen cost in standard mode. Style guide §2 requires 8-dir for shipped player characters. |
-| `size` | `96` for Annie/John/NPCs, `64` for Obi, `64` for Luna (her body fills a 48×64 footprint inside the 64-px frame) | Remember canvas auto-expands ~40% (size 96 → ~135px canvas, §2b-bis). |
-| `proportions` | `{"type": "preset", "name": "chibi"}` (humanoid only; ignored for quadrupeds and pro mode) | Matches the GDD character feel |
-| `outline` | **`single color outline`** — explicitly override; the API default is `single color black outline` which violates Style Guide §3 | Outlines must be color-contextual, never pure black. Ignored in pro mode. |
-| `shading` | `basic shading` | Cozy aesthetic, no gradients. Ignored in pro mode. |
-| `detail` | `medium detail` | Ignored in pro mode. |
-| `view` | `low top-down` | Matches our overworld camera (NOT `high top-down` which is RTS-style) |
-| `reference_image_base64` | (pro mode only) Base64 of Annie's master south-facing PNG | Locks style consistency across the cast. |
+| Operation | Time |
+|---|---|
+| `/generate-image-v2` (one 128×128 image) | ~1–2 min |
+| `/create-character-pro` (8-direction rotation) | ~3 min |
+| `/characters/animations` (per direction) | ~60–180 s |
+| `/rotate` (one image) | ~60–90 s |
 
-### 4c. Tileset calls — `create_topdown_tileset`
+Poll on a sane interval (every 5–15 s). Do **not** set a short "stall timeout"
+and resubmit — jobs legitimately take minutes. (That mistake oversubscribed the
+slot limit and created duplicate animations — see §7.)
 
-| Parameter | Default for Homeward | Why |
-|-----------|----------------------|-----|
-| `tile_size` | **`{ width: 64, height: 64 }`** — explicitly override; the API default is 16×16 | Style guide §1. 16×16 is too small for our cozy detail level. |
-| `view` | **`low top-down`** — explicitly override; the API default is `high top-down` (RTS angle) | Style guide §4. RPG camera. |
-| `outline` | `lineless` for grass/water; `single color outline` for paths/floors | Match how we want edges to read |
-| `shading` | `basic shading` | |
-| `detail` | `medium detail` | |
-| `transition_size` | **discrete values only**: `0.0`, `0.25`, `0.5`, or `1.0`. `0.25` for natural terrain blends; `0.5` for wider blends; `0.0` for sharp man-made edges (wall meets floor); `1.0` produces 23 tiles instead of 16. | API rejects arbitrary floats. |
-| `transition_description` | Required whenever `transition_size > 0` | |
-| `text_guidance_scale` | leave default (`8.0`) | Higher = more literal to prompt, less style consistency. Don't tune unless reroll fails. |
+### 3b. The three-step character pipeline
 
-### 4d. Map object calls — `create_map_object`
+This is the heart of the doc. The Style Guide (§8) mandates it; skipping a step
+is what produced the two-faced Annie. Each step is a distinct API call.
 
-| Parameter | Default | Why |
-|-----------|---------|-----|
-| `view` | `high top-down` for small props (flowers, signs); `low top-down` for tall props (lampposts, trees) | Matches camera |
-| `outline` | `single color outline` | |
-| `shading` | `medium shading` | |
-| `detail` | `medium detail` | |
+```
+Step 1  PORTRAIT          /generate-image-v2          128×128, the style anchor
+           │
+           ▼  (portrait as style reference)
+Step 2  SOUTH SPRITE      /generate-image-v2          one full-body 64×96 south-facing sprite
+           │
+           ▼  (south sprite as reference_image, method=rotate_character)
+Step 3  8-DIR ROTATION    /create-character-pro       8 static directional sprites
+           │
+           ▼  (the character_id from Step 3)
+Step 4  ANIMATIONS        /characters/animations      walk + idle, 8 directions each
+```
 
-### 4d. Known existing assets (account state — refresh with `list_characters` if stale)
+**Why the south sprite is non-negotiable:** `/create-character-pro` needs a
+full-body image to rotate. A portrait shows only head + shoulders — the model
+has nothing to extrapolate the body or the back of the head from, so for the
+pure-back `north` view it falls back to "draw a front-facing chibi" and you get
+a second, subtly different face. Step 2 produces the body the rotator needs.
 
-As of 2026-05-13 (post-cleanup), the PixelLab account state is:
+### 3c. Canvas auto-expansion
 
-| ID | Role | Specs | Notes |
-|----|------|-------|-------|
-| `0f0f4956-f824-4d30-9a93-b0ff3366ca6c` | **Annie working anchor** (source) | 4 directions (S/E/N/W), 68×68 canvas, ~40px tall, low top-down, selective outline, basic shading, medium detail | Original chibi girl with red sweater. Promoted from "Annie prototype" to working anchor on 2026-05-13 after head-to-head evaluation against a duplicate. Hair runs orange-yellow; see §4d-note. |
-| (state-edit ID, populated after polish) | **Annie polished anchor** | inherits from above | Created via `create_character_state` with edit pushing hair toward honey-brown and lengthening past sweater hem. **This is the version to use as visual reference for Obi/Luna/John prompts** once it lands. |
+`/create-character-pro` auto-expands the canvas well beyond the requested
+`image_size` to leave room for animation rigging. A `64×96` request came back as
+a **184×184** canvas with the character ≈ 64×96 centred inside. Plan for this:
+the raw PNGs are large-canvas with transparent padding; Aseprite cleanup crops
+to the target dimensions and normalises the anchor point.
 
-**Cleanup history:** A duplicate prototype `fec5ae66-074a-4ec4-a960-589f5925971e` (low-detail variant, hair drifted further toward yellow) was deleted on 2026-05-13 — strictly inferior to `0f0f4956` on every Style Guide §10 criterion.
+### 3d. Concurrent job slots
 
-**Note on the orange-yellow hair drift:** Standard-mode Annie generations from the existing prompt skew further from real-life "warm honey-brown" than the palette color `#F0D070` does. Future generations should bias prompt language toward "warm honey-brown with subtle golden highlights" rather than just "honey-blonde" — see Style Guide §2.
+The account has roughly **14 concurrent job slots**. An N-direction animation
+request consumes **N slots** (it fans out into one job per direction). So:
 
-The true production anchor (a hand-validated 64×64 portrait per Style Guide §8 "Portrait-First") does **not yet exist**. The 4-dir overworld anchor above is sufficient for early-validation tests; portrait generation is a separate later task.
+- One 8-direction `walking` request = 8 slots. Fine.
+- `walking` (8) + `breathing-idle` (8) at once = 16 > 14 → 429 errors.
+- **Submit `walking`, wait for it to fully complete, then `breathing-idle`.**
 
-Always run `mcp__pixellab__list_characters` at session start. Treat this table as a hint, not gospel.
-
-### 4e. Required style anchor
-
-Almost every character/object generation should reference Annie's master 64×64 portrait as the style anchor (style guide §8 — "Portrait-First"). Workflow:
-
-1. The first time in any session you generate a character, check `list_characters` for an entry tagged `master-anchor-annie-portrait` or similar.
-2. If it doesn't exist yet, **stop and tell the user.** The portrait must be hand-validated before it can anchor anything. Do not auto-generate the anchor.
-3. Once it exists, pass its ID as the style reference in subsequent calls (specific parameter name depends on the tool — `style_images` for `create_tiles_pro`, `state_of` for object variants, character-id linking for `create_character_state`).
+A 429 response body literally says `Available: 0, needed: N` — that is slot
+exhaustion, not a real failure. Wait and retry.
 
 ---
 
-## 5. Recipe Book
+## 4. Endpoint reference (shapes verified in production)
 
-Step-by-step procedures for the iteration loops a Claude Code session will actually run.
+The published docs are unreliable on response shapes. These are what the API
+actually returns. Unwrap defensively: a response may or may not have a `data`
+wrapper — `body.data ?? body` handles both.
 
-### 5a. Recipe — "Test how a new NPC looks in-game"
+### 4a. `POST /generate-image-v2` — plain image generation (portraits, sprites)
 
-Use case: GDD specifies a new NPC; we want a placeholder sprite running around the test map ASAP, polish later.
-
+```json
+{
+  "description": "<prompt>",
+  "image_size": { "width": 128, "height": 128 },
+  "no_background": true,
+  "seed": 1337
+}
 ```
-1. Check the GDD section for the NPC's description and signature look.
-2. mcp__pixellab__create_character with:
-     description: "<GDD description> + universal suffix"
-     n_directions: 4   # fast mode — 4 dirs is enough for placeholder
-     size: 96
-     body_type: humanoid
-     proportions: chibi
-     outline: "single color outline"
-     view: "low top-down"
-     style_reference: <Annie portrait anchor ID>
-3. Note the returned character_id. Set a 90-second timer or do other work.
-4. mcp__pixellab__get_character(character_id) — repeat until status: "ready".
-5. Download the ZIP from the returned URL into assets/sprites/npc/<name>/raw/.
-6. Unzip; preview the front-facing PNG to confirm it's roughly right.
-7. If acceptable: drop into the test map. Skip Aseprite cleanup for placeholder status.
-8. If wrong: try create_character_state with edit_description, or full reroll with refined prompt.
+- Optional: `reference_images` (array, up to 4), `style_image`, `style_options`.
+- There is **no `negative_description`** on this endpoint — steer with "NOT x"
+  phrasing inside `description`.
+- Response (HTTP 202), fields at **top level**: `{ background_job_id, status }`.
+- Poll `/background-jobs/{id}`; the completed image is at
+  `last_response.images[0]` as `{ type: "base64", width, base64 }`.
+
+### 4b. `GET /background-jobs/{job_id}`
+
+Returns a job object: `status` is `pending` | `processing` | `completed` |
+`failed`. On `completed`, image data is under `last_response.images[]`. On
+`failed`, `last_response.type` is `error`.
+
+### 4c. `POST /create-character-pro` — 8-direction rotation
+
+```json
+{
+  "description": "<prompt>",
+  "image_size": { "width": 64, "height": 96 },
+  "method": "rotate_character",
+  "reference_image": { "type": "base64", "base64": "<full-body south sprite>", "format": "png" },
+  "view": "low top-down",
+  "template_id": "mannequin",
+  "no_background": true,
+  "seed": 1337
+}
 ```
+- `method`: **`rotate_character`** for Homeward — rotates the `reference_image`
+  (treated as the south view) into 8 directions. `create_with_style` is
+  text/style-driven and must NOT be used with a portrait (see §7a).
+- `reference_image` max size **168×168**. Our sprites are 184×184, so
+  centre-crop to 168 first (trims transparent padding only — see
+  `tools/regenerate_annie_rotations.py`).
+- `image_size` accepts 32–168 per side; the output canvas auto-expands (§3c).
+- `template_id`: `mannequin` (bipedal), or `dog`/`cat`/etc. for quadrupeds.
+- Response: `data.character_id` + `data.background_job_id`. The `character_id`
+  is persistent — it is what animations attach to.
 
-> **For production NPCs**, use `n_directions: 8` and follow §7 ingestion fully (Aseprite palette snap, frame cleanup, tagged export).
+### 4d. `GET /characters/{character_id}`
 
-### 5b. Recipe — "Generate a placeholder tileset for a new area"
+The character record. Key fields:
+- `rotation_urls`: `{ "<direction>": "<Backblaze url>" }` — the 8 static sprites.
+- `animations[]`: each entry is `{ animation_type, animation_group_id,
+  directions: [ { direction, frame_count, frames: ["<url>", ...] } ] }`.
+- `animation_count`: total directions across **all** animation entries (not the
+  number of entries).
+- `size`, `template_id`, `view`, `skeletons` (2D + 3D keypoints).
 
-Use case: We're building out Chapter 1 (Kentucky). We need a grass/dirt-path tileset to lay down a map.
+### 4e. `POST /characters/animations` — walk / idle / etc.
 
+```json
+{
+  "character_id": "<id>",
+  "template_animation_id": "walking",
+  "mode": "template",
+  "directions": ["south","south-east","east","north-east","north","north-west","west","south-west"]
+}
 ```
-1. mcp__pixellab__create_topdown_tileset:
-     lower_description: "soft green grass, cozy meadow, small flower specks"
-     upper_description: "warm sand dirt path, well-worn earth"
-     transition_size: 0.3
-     transition_description: "scattered pebbles and small grass tufts at edge"
-     tile_size: { width: 64, height: 64 }
-     view: "low top-down"
-     outline: "lineless"
-     shading: "basic shading"
-     + universal suffix
-2. Capture the returned tileset_id AND base_tile_ids — you need both for chaining.
-3. Wait ~2 min. mcp__pixellab__get_topdown_tileset(tileset_id) to confirm ready.
-4. Download to assets/tiles/<area>/raw/<area>-grass-dirt.png.
-5. For a related tileset in the same area (e.g., grass→stone path), call create_topdown_tileset AGAIN passing the previous grass base_tile_id as lower_base_tile_id — this chains the new tileset to look stylistically continuous with the first.
-6. Repeat for every terrain pairing the area needs (style guide §4 lists categories).
+- **One request per animation type, all directions in the `directions` list.**
+  This produces ONE animation entry holding all 8 directions. In template mode
+  `directions` defaults to all character directions if omitted.
+- Response: `{ background_job_ids: [...], directions: [...], status }` —
+  **`background_job_ids` is a plural array**, one job ID per direction; they all
+  belong to the single animation entry.
+- `template_animation_id`: `walking`, `breathing-idle`, `attack`, etc. Template
+  mode = 1 generation per direction.
+- **Each `POST` creates a new `animation_group_id`.** Re-submitting (e.g. to
+  fill a failed direction) makes a *separate* entry of the same
+  `animation_type`. When reading the character record, sum directions across all
+  entries of a type — do not index by `animation_type` alone.
+- Frame counts: `walking` = 6 frames/direction, `breathing-idle` = 4.
+
+### 4f. `POST /rotate` — rotate a single image
+
+Used to repair one bad direction by rotating a known-good neighbour.
+
+```json
+{
+  "image_size": { "width": 128, "height": 128 },
+  "from_image": { "type": "base64", "base64": "<png>", "format": "png" },
+  "from_direction": "north-east",
+  "to_direction": "north",
+  "image_guidance_scale": 3.0,
+  "seed": 7
+}
 ```
+- **Does NOT accept a `view` field** (HTTP 422 `extra_forbidden`).
+- **Canvas must be exactly 128×128, 64×64, 32×32, or 16×16** (square). A 184×184
+  input is rejected — centre-crop to 128 first, then pad the result back.
 
-### 5c. Recipe — "Add a single decoration (mailbox, sign, lamppost)"
+### 4g. ZIP and delete
 
-```
-1. mcp__pixellab__create_map_object:
-     description: "<object> + style suffix"
-     width: 64, height: 64  (or 64×96 for tall props)
-     view: "high top-down" for short props, "low top-down" for tall props
-     outline: "single color outline"
-2. Wait ~90s, get_map_object, download to assets/sprites/objects/<area>/raw/.
-3. Object auto-deletes from PixelLab cloud in 8h — local save is mandatory.
-```
+- `GET /characters/{id}/zip` — bundles rotations + animations. Returns **HTTP
+  423** if anything is still rendering; check the status code (or that the body
+  is > 1 KB) before saving, or you save a JSON error as a `.zip`.
+- `DELETE /characters/{id}` — deletes the **whole** character. There is **no
+  endpoint to delete or replace a single rotation or a single animation**, and
+  none to update a character in place (only `PATCH /characters/{id}/tags`).
 
-### 5d. Recipe — "Regenerate one bad direction in a rotation"
+### 4h. Downloading from Backblaze
 
-When 7 of 8 directions look fine but one is broken (common with accessory items like Obi's bandana).
+`rotation_urls` and animation `frames` are `backblaze.pixellab.ai/...` CDN URLs.
 
-```
-1. Identify the bad direction — visually inspect each PNG in the rotation.
-2. mcp__pixellab__create_character_state:
-     character_id: <existing character>
-     edit_description: "fix west-facing view: <specific issue, e.g. 'bandana clips through neck'>"
-3. Crop the corrected direction into the rotation sheet manually in Aseprite (or via tools/ script).
-```
-
-> If 3+ directions are bad, it's cheaper to reroll the whole character with a refined prompt than to patch.
-
-### 5e. Recipe — "Iterate on a sprite that's 90% right"
-
-The cheap-iteration path. Avoid full rerolls when possible.
-
-```
-- Use create_character_state with a precise edit_description. Costs 1 Pro call instead of N.
-- For multi-frame objects, use create_object_state similarly.
-- For tilesets that look 90% right but the transition is wrong, regenerate the tileset with the same base_tile_ids but a different transition_description — keeps base tiles, only re-paints transitions.
-```
-
-### 5f. Recipe — "Cost-check before a batch run"
-
-Before kicking off a sweep (e.g., "generate all 18 NPCs"), confirm budget:
-
-```
-1. mcp__pixellab__list_characters with limit: 100 — count what already exists; don't regenerate accidentally.
-2. Estimate: 18 NPCs × 40 credits × 1.3 overhead = ~940 credits. State this to the user.
-3. Always pass confirm_cost: true on first call of a batch — let the API return its actual estimate and surface it.
-4. Get user OK before launching the rest.
-```
+- **Do NOT send the `Authorization` header** — the Bearer token returns 401.
+- Python `urllib`'s default `User-Agent` returns **403** — send
+  `User-Agent: Mozilla/5.0`. Node `fetch()` works with no special headers.
 
 ---
 
-## 6. Asset Ingestion (Where Files Go)
+## 5. The canonical character pipeline (step by step)
+
+Reference implementation for Annie; repeat for John, Obi, Luna. Scripts live in
+`tools/` — `regenerate_annie_rotations.py` is the cleanest Step-3 template.
+
+### Step 1 — Portrait
+
+`POST /generate-image-v2`, `image_size` 128×128, `no_background: true`. Generate
+3–4 candidates with different seeds (`0`, `42`, `1337`, `2024`). Present them;
+the user hand-picks one. The chosen portrait is the master style anchor for the
+**entire game** — every other character references it. Save to
+`assets/portraits/<char>/<char>-neutral.png`.
+
+### Step 2 — Full-body south sprite
+
+The rotation input. A full-body, south-facing (facing the camera) 64×96 sprite.
+Generate with `/generate-image-v2` using the portrait as a `style_image` /
+`reference_images` entry so the body matches the portrait's style. Description
+should specify a full body: hair, top, legs, footwear.
+
+> Shortcut used in Annie's repair: an already-good south *rotation* can serve as
+> the Step-2 sprite directly. But the clean path is to generate the south sprite
+> explicitly from the portrait.
+
+### Step 3 — 8-direction rotation
+
+`POST /create-character-pro`, `method: "rotate_character"`, `reference_image` =
+the Step-2 south sprite (centre-cropped to ≤168×168). Poll the job, then
+`GET /characters/{id}` for `rotation_urls`. Download all 8.
+
+**Verify before continuing:** open all 8. `north` must be a back-of-head view.
+A quick tell — back views compress small (~5–8 KB), front views large (~10 KB);
+a `north` PNG the same size as `south` is a red flag. If a direction is wrong,
+either re-roll Step 3 with a different seed, or repair that one direction with
+`/rotate` from a good neighbour (§4f).
+
+### Step 4 — Walk + idle animations
+
+`POST /characters/animations` **once for `walking`** with all 8 directions.
+Poll patiently (5–15 min; directions populate incrementally). When `walking` is
+fully done, `POST` **once for `breathing-idle`** with all 8 directions. Poll.
+Then `GET /characters/{id}` and download every frame from
+`animations[].directions[].frames[]`.
+
+If a direction's job comes back `failed`, re-submit just that direction — accept
+that it lands in a small separate animation entry (there is no merge API).
+
+---
+
+## 6. Prompt defaults
+
+### Universal suffix (append to every character prompt)
+```
+warm cozy pixel art, soft outlines, no pure black, earthy tones
+```
+### Universal steering (this endpoint has no negative field — phrase inline)
+```
+NOT pure black, NOT pure white, NOT harsh outlines, NOT neon, NOT anime style, NOT gradient shading
+```
+### Character prompt templates
+Live in **HOMEWARD-STYLE-GUIDE.md §8** ("Character Prompt Templates"). Notable
+hard rules from §2:
+- **Obi: never write the word "beagle."** He is a beagle/Aussie-Shepherd/Cattle-
+  Dog mix; "beagle" makes the model draw a stocky tricolor hound. Use the §2
+  template and steer with `NOT a beagle, NOT stocky, NOT barrel-chested`.
+- **Annie's hair** is "warm honey-brown with subtle golden highlights" — steer
+  away from bright/anime yellow explicitly.
+- **Luna** generates natively at 48–64 px now (the old 32-px-floor risk is
+  retired).
+
+---
+
+## 7. Anti-patterns (the expensive lessons)
+
+Every item here is a mistake made during Annie's generation. Re-reading this
+section before generating John/Obi/Luna is the whole point of the doc.
+
+### 7a. Never feed a portrait into `/create-character-pro`
+The portrait is head + shoulders only. With `method: "create_with_style"` and a
+portrait reference, the model has no body/back-of-head information and generates
+a **second front-facing face** for the `north` slot — a character with two
+different faces. Always do Step 2 (full-body south sprite) first, then Step 3
+with `method: "rotate_character"`.
+
+### 7b. Never submit animations one direction per call
+`POST /characters/animations` with `directions: ["north"]` creates a whole
+animation entry containing only `north` — 7 empty slots. Eight such calls = eight
+fragmented animations. There is no API to merge or delete them. **One request,
+all directions in the list.**
+
+### 7c. Never misread incremental population as "dropped directions"
+A multi-direction request fills directions one at a time over 5–15 minutes.
+Seeing 5/8 after a few minutes is normal. It is NOT a batch-drop bug. Wait.
+
+### 7d. Never resubmit while jobs are `processing`
+Animation jobs take 60–180 s each. A short stall timeout that resubmits "because
+nothing changed in 60 s" doubles the slot demand, causes 429s, and creates
+duplicate animation entries. Poll the **job IDs** for deterministic status;
+only resubmit a direction whose job is genuinely `failed`.
+
+### 7e. Never overlap two 8-direction animation requests
+8 + 8 slots > the ~14 cap. Finish `walking` before starting `breathing-idle`.
+
+### 7f. Never send the Bearer token to a Backblaze URL
+It returns 401. Backblaze download URLs are unauthenticated (§4h).
+
+### 7g. Never send `view` to `/rotate`
+HTTP 422. And remember `/rotate` only accepts 128/64/32/16 square canvases.
+
+### 7h. Never re-anchor on AI output
+New generations always reference the original hand-validated portrait, never the
+most recent generation. Drift compounds after ~20 hops.
+
+### 7i. Never commit the API token
+Not in any doc, config, or commit message. If you see one checked in, tell the
+user to rotate it.
+
+### 7j. Never assume cloud retention
+Download every PNG locally the moment a job is ready. PixelLab's cloud is not a
+backup. `raw/` is committed to git.
+
+---
+
+## 8. Asset ingestion (where files go)
 
 ```
 assets/
-├── palette/
-│   └── homeward.gpl            # canonical palette (already exists)
-├── sprites/
-│   ├── characters/
-│   │   ├── annie/
-│   │   │   ├── raw/            # untouched downloads from PixelLab
-│   │   │   ├── annie.aseprite  # master file with tagged frames
-│   │   │   └── exports/        # final sprite sheet PNGs + JSON
-│   │   ├── john/   …
-│   │   ├── obi/    …
-│   │   └── luna/   …
-│   ├── npc/<name>/{raw,exports}
-│   ├── enemies/<name>/{raw,exports}
-│   └── objects/<area>/{raw,exports}
-├── tiles/
-│   └── <area>/{raw,exports}
-└── portraits/
-    └── <character>-<expression>.png
+├── palette/homeward.gpl                      canonical palette
+├── portraits/<char>/
+│   ├── <char>-neutral.png                    approved portrait anchor
+│   ├── raw/                                  all portrait candidates
+│   └── GENERATION-LOG.md                     reproduction parameters
+└── sprites/characters/<char>/
+    ├── raw/                                  untouched PixelLab downloads
+    │   ├── annie-overworld-<direction>.png   8 static rotations
+    │   ├── walking/<direction>/<i>.png       animation frames
+    │   ├── breathing-idle/<direction>/<i>.png
+    │   └── _archive-*/                       superseded/broken sets, kept for reference
+    ├── <char>.aseprite                       master file, tagged frames (cleanup step)
+    ├── exports/                              final sprite sheets the engine loads
+    └── GENERATION-LOG.md                     reproduction parameters + lessons
 ```
 
 ### Rules
+- **`raw/` is committed to git** — generation costs credits; downloads are
+  project assets. Never overwrite or hand-edit a `raw/` file.
+- Keep a `GENERATION-LOG.md` per character: endpoints, methods, seeds,
+  `character_id`, and what went wrong. Future sessions read it first.
+- Superseded/broken generations go in a clearly-named `_archive-*/` subfolder,
+  not deleted — the project keeps raw outputs for reference.
+- `exports/` is what the engine loads; it never reads `raw/`.
 
-- **Always save raw PixelLab downloads to `raw/`** — never overwrite, never edit. They are the source of truth in case Aseprite cleanup goes wrong.
-- **`raw/` is committed to git.** Generation isn't free; we treat downloads as project assets.
-- **`exports/` is what the game engine loads.** The engine never reads `raw/`.
-- **The `.aseprite` master file is the canonical mid-step.** All tags, frame timing, palette snapping live there. PNGs in `exports/` are produced by `File > Export Sprite Sheet` with Split Tags.
-- **Naming follows style guide §9.** Don't invent new conventions.
+### Aseprite cleanup gate (for shipped assets)
+1. Open the raw PNG(s).
+2. `Sprite > Color Mode > Indexed` with `homeward.gpl` loaded — snaps off-palette
+   pixels; scan for unintended shifts.
+3. Normalise canvases to a common anchor; repair drifted pixels / edge artifacts.
+4. Set frame timings + tags (`idle`, `walk_n`, …).
+5. Onion-skin walk cycles to check for foot-slip on the loop.
+6. `File > Export Sprite Sheet` with Split Tags → PNG + JSON into `exports/`.
 
-### Aseprite gate
-
-For *production* assets (anything actually shipped in a chapter), every raw download MUST go through the Aseprite cleanup gate before becoming an `exports/` file:
-
-1. Open raw PNG.
-2. `Sprite > Color Mode > Indexed` with `assets/palette/homeward.gpl` loaded. Pixels off-palette get snapped — visually scan for any unintended color shifts after the snap.
-3. Manually repair drifted pixels, broken accessories, semi-transparent edge artifacts.
-4. Set frame timings + tags (`idle`, `walk_n`, `walk_s`, etc.).
-5. Save the `.aseprite` file.
-6. `File > Export Sprite Sheet` → PNG + JSON into `exports/`.
-
-For *placeholder* assets (test sprites used during prototyping), you can skip the gate and ship the raw PNG. Mark them with a comment in the game data so we know they need replacement before the chapter ships.
-
----
-
-## 7. Anti-Patterns (DO NOT)
-
-These mistakes are expensive in credits, time, or quality. Style guide §8 has more — these are the ones specific to running the MCP from Claude Code.
-
-### 7a. Never re-anchor on AI output
-
-The style reference for new generations is **always the original hand-validated Annie portrait**, not the most recent generation. Drift compounds; using the last batch as the anchor for the next batch produces visible style decay after ~20 hops.
-
-### 7b. Never say "beagle" for Obi
-
-He is 50% beagle + Aussie Shepherd + Cattle Dog. AI will hallucinate a stocky tricolor hound if you say "beagle." Use the exact prompt template in style guide §2 ("Obi"). Always include the negative: `beagle, hound, stocky, barrel-chested, tricolor, black patches`.
-
-### 7c. Luna sizing — retired anti-pattern
-
-Previously: Luna's 24×32 target was below PixelLab's 32×32 quality floor, so we generated her at 32×32 and re-canvased in Aseprite. After the May 2026 native-resolution doubling, Luna's target is 48×64 — comfortably above the threshold. Generate her natively at 48×64 (or 64×64 with the cat filling a 48-wide footprint); no re-canvasing required. Style guide §2 ("Luna") and §8 reflect the new flow.
-
-### 7d. Never assume cloud retention
-
-`create_map_object` artifacts vanish after 8 hours. Even longer-lived asset types are not a backup. Download immediately, commit to git after the Aseprite gate (or to `raw/` for placeholders).
-
-### 7e. Never run a batch >5 generations without user confirmation
-
-5 generations in standard mode = ~5 credits (cheap). 5 generations in pro mode = ~100–200 credits = real money. Always state the mode and estimated cost before launching a batch, then get a "go."
-
-### 7e-bis. Never set `confirm_cost: true` on first call to `animate_character` with a custom (non-template) animation
-
-The schema explicitly mandates this. First call without `confirm_cost`, surface the cost to the user, get explicit approval, then call again with `confirm_cost: true`. Template animations don't need this; custom (`action_description` only) animations cost 20–40 generations per direction.
-
-### 7f. Never commit the API token
-
-Not in CLAUDE.md, not in this doc, not in a config file in the repo, not in a commit message. If you ever see one anywhere checked-in, rotate it immediately and tell the user.
-
-### 7g. Never use pure black or pure white in any prompt
-
-The universal negative prevents this, but if you find yourself writing `pure black outline` or `pure white background`, stop — use `Charcoal outline (#3A2E28)` and `Cream background (#FFF8F0)` or `transparent background`. Style guide §3.
-
-### 7h. Don't poll in a tight loop
-
-`get_character` immediately after `create_character` will say "processing." Wait ~90 seconds at minimum. If you have other work, do it first. Repeated rapid polls waste context and don't speed up generation.
+Placeholder/test assets may skip the gate; mark them for later replacement.
 
 ---
 
-## 8. Verifying Setup Health
+## 9. Account state (refresh with care)
 
-Run this as a smoke test once per session if you're going to do real PixelLab work:
+As of 2026-05-15, the PixelLab account holds (among older experiments):
 
-```
-1. claude mcp list                              → confirms server registered + connected
-2. ToolSearch({ query: "pixellab", max_results: 30 })  → loads all schemas
-3. mcp__pixellab__list_characters with limit: 5 → confirms auth + quota
-4. (Optional) mcp__pixellab__get_character(<known good ID>) → confirms reads work
-```
+| `character_id` | Role | Status |
+|---|---|---|
+| `ad0fdc16-a374-4252-9209-c0750971c916` | **Annie — active overworld character.** 8 rotations + walk + idle, all 8 directions, `north` correct. | **Current.** Use this. |
+| `e7ac9162-76d6-4fce-8a9e-cfbaf35f046c` | Annie v1 — the two-faced-`north` character. | Broken. Superseded; safe to `DELETE`. |
+| `0f0f4956-…`, validation-test characters (`3b01fdb5`, `f30563b6`, `fe3dea3b`) | Pre-portrait prototypes / resolution-validation tests. | Superseded. |
 
-If step 3 returns a 401, the token is stale — re-run `claude mcp add` with a fresh token from pixellab.ai.
+Annie's master portrait: `assets/portraits/annie/annie-neutral.png`
+(`/generate-image-v2`, seed 1337). It is the style anchor for John, Obi, Luna.
 
-If step 1 shows the server but step 3 errors with a transport issue, the URL may have changed — verify against https://www.pixellab.ai/mcp.
-
----
-
-## 9. Cross-References
-
-- **Visual decisions** (palette, sizes, character looks, prompt content, style anchor strategy): **HOMEWARD-STYLE-GUIDE.md §1–§8.** When this doc and the style guide disagree, the style guide wins.
-- **Character lore & enemy roster** (what to generate for which chapter): **HOMEWARD-GDD.md.**
-- **How sprite sheets are loaded by the engine** (what format `exports/` needs to be in): **HOMEWARD-ARCHITECTURE.md.**
-- **PixelLab MCP source docs** (when this file is out of date): https://www.pixellab.ai/mcp and https://api.pixellab.ai/mcp/docs
+Local source of truth is the repo, not the account — `assets/.../raw/` plus the
+`GENERATION-LOG.md` files. Treat this table as a hint; the account may have
+stale experiments worth deleting.
 
 ---
 
-## 10. Maintenance
+## 10. Cross-references & maintenance
 
-This doc was written 2026-05-13. Update it when:
+- **Visual decisions** (palette, sizes, character looks, prompt content):
+  **HOMEWARD-STYLE-GUIDE.md §1–§8.** If this doc and the Style Guide disagree,
+  the Style Guide wins.
+- **Character lore & roster:** **HOMEWARD-GDD.md.**
+- **How `exports/` sprite sheets are loaded:** **HOMEWARD-ARCHITECTURE.md.**
+- **Per-character generation records:** the `GENERATION-LOG.md` files under
+  `assets/portraits/` and `assets/sprites/characters/`.
+- **Live REST docs:** `https://api.pixellab.ai/v2/llms.txt` (incomplete — trust
+  §4 here over the published response shapes).
 
-- PixelLab adds or removes tools (compare against api.pixellab.ai/mcp/docs).
-- Credit pricing changes — update §2a.
-- The Annie portrait master anchor is regenerated — note the new asset ID somewhere stable.
-- The Aseprite cleanup gate changes (new linter, new palette validation script in `tools/`).
-- We find a new anti-pattern by burning credits on it.
+Update this doc when: PixelLab changes an endpoint or response shape; a new
+anti-pattern is discovered; or the account's active character set changes. The
+Style Guide gets visual-decision changes; this doc gets tool/process changes.
 
-The style guide gets updated for visual decisions; this doc gets updated for tool/process changes. Don't mix them.
+> **Tilesets and objects** were not exercised via REST this session. Earlier
+> MCP-based tileset findings live in `assets/VALIDATION-TESTS-2026-05-13.md`.
+> When the tileset pipeline is built out, document its REST recipe here.

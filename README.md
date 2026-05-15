@@ -30,7 +30,9 @@ Design and implementation notes live in four reference docs at the repo root:
 
 ## Status
 
-In active development. Milestone 0 (vertical slice) is up: tile map, party, dialogue, Little Things, area transitions. Sprite generation is the current focus.
+In active development. Milestone 0 (vertical slice) is up: tile map, party, dialogue, Little Things, area transitions.
+
+Art is the current focus. Annie's overworld sprite is done — master portrait, 8-direction rotation, and walk + idle animations, generated via the PixelLab REST API. John, Obi, and Luna are next, using the same pipeline.
 
 ---
 

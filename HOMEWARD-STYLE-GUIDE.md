@@ -397,6 +397,15 @@ The research revealed that the anchor should be the **portrait**, not the overwo
 7. **Day 4-7: Generate John, Obi, and Luna** using Annie's portrait as the style reference anchor. Same pipeline per character.
 8. **Decision gate (end of Week 1):** If all four characters + one test tileset look production-grade after Aseprite cleanup, proceed to bulk generation. If not, evaluate alternatives before committing further.
 
+> **⚠️ Steps 2 and 3 are separate operations — never collapse them.** The portrait
+> is a *style* reference only; it has no body or back-of-head detail. Feeding the
+> portrait directly into 8-direction generation (skipping Step 2's full-body
+> south sprite) makes the model invent a second front-facing face for the
+> back/`north` view — a character with two different faces. Step 3 must rotate a
+> *full-body south sprite*, not the portrait. This already cost a full
+> regeneration of Annie. Operational details and the verified API calls:
+> **HOMEWARD-PIXELLAB-WORKFLOW.md §5 + §7a.**
+
 ### Style Consistency Rules
 
 PixelLab's style reference system works well for ~20 generations, then drifts. Mitigate with discipline:

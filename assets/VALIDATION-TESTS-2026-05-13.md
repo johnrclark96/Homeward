@@ -1,5 +1,18 @@
 # Homeward — PixelLab Validation Tests, 2026-05-13
 
+> **HISTORICAL SNAPSHOT — superseded.** This is a dated record of the early
+> resolution-validation tests, kept for reference. It predates Annie's real
+> production pipeline and the switch to the REST API v2. Treat it as history,
+> not current guidance:
+> - Current art workflow + verified endpoint shapes: **HOMEWARD-PIXELLAB-WORKFLOW.md**
+>   (fully rewritten — the "§4c / §2c / §2b-bis" section references at the bottom
+>   of this file point at an old section numbering that no longer exists).
+> - Current Annie assets + `character_id`: `assets/sprites/characters/annie/GENERATION-LOG.md`.
+> - The tests below used the MCP `create_character` tool in *standard* mode; the
+>   production pipeline uses the REST API v2 with the portrait→sprite→rotate
+>   three-step flow. The Obi/Luna observations (Tests 2–3) are still useful as
+>   forward-looking notes since those characters aren't generated yet.
+
 Four standard-mode generations validating the new 960×540 / 64×64-tile resolution against PixelLab's
 output quality. All tests ran at 1 generation each (~4 credits total).
 

@@ -47,14 +47,22 @@ All 4 candidates were generated in a single batch via `tools/generate-annie-port
 
 To generate a new character (John, Obi, Luna, NPCs) in this same visual language:
 
-1. Pass `annie-neutral.png` as a style reference (base64-encoded under the appropriate field — e.g., `reference_image` on `/create-character-pro`, or `style_image` on `/generate-image-v2`).
+1. Pass `annie-neutral.png` as the **style reference for a new character's portrait**
+   (`style_image` / `reference_images` on `/generate-image-v2`). Do **not** pass
+   this portrait into `/create-character-pro` — the 8-direction rotation step
+   needs a full-body south sprite, not a head-and-shoulders portrait. See
+   HOMEWARD-PIXELLAB-WORKFLOW.md §5 for the three-step pipeline.
 2. Keep the universal prompt suffix consistent: `warm cozy pixel art, soft outlines, no pure black, earthy tones`.
-3. Keep the universal negative cues consistent: `pure black, pure white, harsh outlines, neon colors, anime style, gradient shading`.
+3. Keep the universal negative cues consistent (this endpoint has no negative field — phrase as "NOT x" inline): `NOT pure black, NOT pure white, NOT harsh outlines, NOT neon, NOT anime style, NOT gradient shading`.
 4. Re-anchor against this file every ~20 generations to catch style drift before it compounds.
 
 ## Downstream Assets That Chain From This Anchor
 
-- Annie overworld sprite (64×96, 8-direction) — generated next via `/create-character-pro` with this portrait as style reference.
-- Annie walk + idle animations — derived from the overworld sprite.
-- Annie expression variants (happy, sad, surprised, thinking, determined) — likely inpainted off this portrait rather than re-generated from scratch.
-- John, Obi, Luna portraits — generated fresh but using this file as the style anchor to keep palette/outline treatment/warmth consistent.
+- Annie overworld sprite (8-direction static rotation + walk + idle animations)
+  — **DONE.** Generated via the three-step pipeline (portrait → full-body south
+  sprite → `rotate_character` → animations). PixelLab `character_id` `ad0fdc16`.
+  Full record: `assets/sprites/characters/annie/GENERATION-LOG.md`.
+- Annie expression variants (happy, sad, surprised, thinking, determined) — not
+  yet generated; likely inpainted off this portrait rather than re-generated.
+- John, Obi, Luna portraits — generated fresh but using this file as the style
+  anchor to keep palette/outline treatment/warmth consistent.
