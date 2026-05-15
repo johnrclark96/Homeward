@@ -1,0 +1,177 @@
+{
+  "group_id": null,
+  "states": [
+    {
+      "character": {
+        "id": "e7ac9162-76d6-4fce-8a9e-cfbaf35f046c",
+        "name": "chibi girl with long warm honey-brown wavy hair past shoulders, NOT bright yellow, NOT anime yellow, warm brown undertones with subtle golden highlights, red sweater, dark pants, small boots, top-down RPG sprite, low top-down view, transparent background, warm cozy pixel art, soft warm-brown contextual outlines, no pure black, no pure white",
+        "prompt": "chibi girl with long warm honey-brown wavy hair past shoulders, NOT bright yellow, NOT anime yellow, warm brown undertones with subtle golden highlights, red sweater, dark pants, small boots, top-down RPG sprite, low top-down view, transparent background, warm cozy pixel art, soft warm-brown contextual outlines, no pure black, no pure white",
+        "size": {
+          "width": 184,
+          "height": 184
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-05-14T03:33:43.733519+00:00"
+      },
+      "folder": "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa",
+      "frames": {
+        "rotations": {
+          "south": "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/rotations/south.png",
+          "south-east": "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/rotations/south-east.png",
+          "east": "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/rotations/east.png",
+          "north-east": "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/rotations/north-east.png",
+          "north": "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/rotations/north.png",
+          "north-west": "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/rotations/north-west.png",
+          "west": "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/rotations/west.png",
+          "south-west": "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/rotations/south-west.png"
+        },
+        "animations": {
+          "walking-61fd17bd": {
+            "north-west": [
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/north-west/frame_000.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/north-west/frame_001.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/north-west/frame_002.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/north-west/frame_003.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/north-west/frame_004.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/north-west/frame_005.png"
+            ],
+            "east": [
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/east/frame_000.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/east/frame_001.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/east/frame_002.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/east/frame_003.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/east/frame_004.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/east/frame_005.png"
+            ],
+            "south": [
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/south/frame_000.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/south/frame_001.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/south/frame_002.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/south/frame_003.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/south/frame_004.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/south/frame_005.png"
+            ],
+            "south-east": [
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/south-east/frame_000.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/south-east/frame_001.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/south-east/frame_002.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/south-east/frame_003.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/south-east/frame_004.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/south-east/frame_005.png"
+            ],
+            "north-east": [
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/north-east/frame_000.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/north-east/frame_001.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/north-east/frame_002.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/north-east/frame_003.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/north-east/frame_004.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-61fd17bd/north-east/frame_005.png"
+            ]
+          },
+          "animating-1b80e959": {
+            "south": [
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-1b80e959/south/frame_000.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-1b80e959/south/frame_001.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-1b80e959/south/frame_002.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-1b80e959/south/frame_003.png"
+            ],
+            "south-east": [
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-1b80e959/south-east/frame_000.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-1b80e959/south-east/frame_001.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-1b80e959/south-east/frame_002.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-1b80e959/south-east/frame_003.png"
+            ],
+            "north-east": [
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-1b80e959/north-east/frame_000.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-1b80e959/north-east/frame_001.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-1b80e959/north-east/frame_002.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-1b80e959/north-east/frame_003.png"
+            ],
+            "north-west": [
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-1b80e959/north-west/frame_000.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-1b80e959/north-west/frame_001.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-1b80e959/north-west/frame_002.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-1b80e959/north-west/frame_003.png"
+            ],
+            "east": [
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-1b80e959/east/frame_000.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-1b80e959/east/frame_001.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-1b80e959/east/frame_002.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-1b80e959/east/frame_003.png"
+            ]
+          },
+          "animating-b05f30e9": {
+            "north": [
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-b05f30e9/north/frame_000.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-b05f30e9/north/frame_001.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-b05f30e9/north/frame_002.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-b05f30e9/north/frame_003.png"
+            ]
+          },
+          "animating-fc7307f0": {
+            "south-west": [
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-fc7307f0/south-west/frame_000.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-fc7307f0/south-west/frame_001.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-fc7307f0/south-west/frame_002.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-fc7307f0/south-west/frame_003.png"
+            ],
+            "west": [
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-fc7307f0/west/frame_000.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-fc7307f0/west/frame_001.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-fc7307f0/west/frame_002.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-fc7307f0/west/frame_003.png"
+            ]
+          },
+          "walking-c6f93f64": {
+            "west": [
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-c6f93f64/west/frame_000.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-c6f93f64/west/frame_001.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-c6f93f64/west/frame_002.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-c6f93f64/west/frame_003.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-c6f93f64/west/frame_004.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-c6f93f64/west/frame_005.png"
+            ],
+            "south-west": [
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-c6f93f64/south-west/frame_000.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-c6f93f64/south-west/frame_001.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-c6f93f64/south-west/frame_002.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-c6f93f64/south-west/frame_003.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-c6f93f64/south-west/frame_004.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-c6f93f64/south-west/frame_005.png"
+            ]
+          },
+          "walking-836e0639": {
+            "north": [
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-836e0639/north/frame_000.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-836e0639/north/frame_001.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-836e0639/north/frame_002.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-836e0639/north/frame_003.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-836e0639/north/frame_004.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/walking-836e0639/north/frame_005.png"
+            ]
+          },
+          "animating-add12ff2": {
+            "north": [
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-add12ff2/north/frame_000.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-add12ff2/north/frame_001.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-add12ff2/north/frame_002.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-add12ff2/north/frame_003.png"
+            ]
+          },
+          "animating-1af96c93": {
+            "north": [
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-1af96c93/north/frame_000.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-1af96c93/north/frame_001.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-1af96c93/north/frame_002.png",
+              "states/chibi_girl_with_long_warm_honey-brown_wavy_hair_pa/animations/animating-1af96c93/north/frame_003.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.0",
+  "export_date": "2026-05-14T04:36:05.054299"
+}
