@@ -1,0 +1,205 @@
+{
+  "main": {
+    "id": "0de7c1aac823ab57",
+    "type": "split",
+    "children": [
+      {
+        "id": "956df02f5b8e8d73",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "4044dfe86a83b637",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "HOMEWARD-GDD.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "HOMEWARD-GDD"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "4084ff42e820e988",
+    "type": "split",
+    "children": [
+      {
+        "id": "35ae8089f929eda9",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "511efc9a9248f4bf",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "33873f9fc3c5164c",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "ce9ec809a7783457",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "800c14b4b40c8a08",
+    "type": "split",
+    "children": [
+      {
+        "id": "56c9b1e43b78a7a2",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "2f6b644dedecfc16",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "HOMEWARD-GDD.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for HOMEWARD-GDD"
+            }
+          },
+          {
+            "id": "aa770a42f152c573",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "HOMEWARD-GDD.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from HOMEWARD-GDD"
+            }
+          },
+          {
+            "id": "e24d925f8acb4dc3",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "d2448c63cacb5198",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "4428034acf129070",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "HOMEWARD-GDD.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of HOMEWARD-GDD"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "4044dfe86a83b637",
+  "lastOpenFiles": [
+    "assets/sprites/characters/annie/GENERATION-LOG.md",
+    "assets/sprites/characters/annie/raw/walking/west/5.png",
+    "assets/sprites/characters/annie/raw/walking/west/4.png",
+    "assets/sprites/characters/annie/raw/walking/west/3.png",
+    "assets/sprites/characters/annie/raw/walking/west/2.png",
+    "assets/sprites/characters/annie/raw/walking/west/1.png",
+    "assets/sprites/characters/annie/raw/walking/west/0.png",
+    "assets/sprites/characters/annie/raw/walking/west",
+    "assets/sprites/characters/annie/raw/walking/south-west/5.png",
+    "assets/sprites/characters/annie/raw/walking/south-west/4.png",
+    "assets/sprites/characters/annie/raw/walking/south-west/3.png",
+    "assets/sprites/characters/annie/raw/walking/south-west/2.png",
+    "assets/sprites/characters/annie/raw/walking/south-west",
+    "assets/sprites/characters/annie/raw/breathing-idle/west",
+    "assets/sprites/characters/annie/raw/breathing-idle/south-west",
+    "HOMEWARD-PIXELLAB-WORKFLOW.md"
+  ]
+}
